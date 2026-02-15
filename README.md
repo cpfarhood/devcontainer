@@ -1,5 +1,7 @@
 # Antigravity Dev Container
 
+![Build and Push](https://github.com/cpfarhood/devcontainer/actions/workflows/build-and-push.yaml/badge.svg)
+
 A containerized development environment with GUI access, featuring:
 - **Antigravity** (VSCode/Cloud IDE) via web browser
 - **Happy Coder** - AI-powered development assistant
@@ -35,11 +37,22 @@ A containerized development environment with GUI access, featuring:
 
 ## Quick Start
 
-### 1. Build the Image
+### 1. Get the Image
+
+The image is automatically built and published to GitHub Container Registry on every push to main.
 
 ```bash
-docker build -t ghcr.io/cpfarhood/antigravity:latest .
-docker push ghcr.io/cpfarhood/antigravity:latest
+# Pull the latest image
+docker pull ghcr.io/cpfarhood/devcontainer:latest
+
+# Or pull a specific version
+docker pull ghcr.io/cpfarhood/devcontainer:v1.0.0
+```
+
+**Building locally (optional):**
+```bash
+docker build -t ghcr.io/cpfarhood/devcontainer:latest .
+docker push ghcr.io/cpfarhood/devcontainer:latest
 ```
 
 ### 2. Configure Secrets
