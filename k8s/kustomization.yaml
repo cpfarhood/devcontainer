@@ -1,0 +1,26 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: default
+
+resources:
+  - configmap.yaml
+  - statefulset.yaml
+  - ingress.yaml
+
+# Uncomment to create secrets from files
+# secretGenerator:
+#   - name: antigravity-secrets
+#     literals:
+#       - github-token=ghp_your_token
+#       - happy-coder-api-key=your_key
+#       - vnc-password=your_password
+
+commonLabels:
+  app: antigravity
+  environment: production
+
+commonAnnotations:
+  managed-by: kustomize
+  description: "Antigravity Dev Container with Happy Coder"

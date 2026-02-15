@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: antigravity-config
+data:
+  # GitHub repository to clone on startup
+  # Example: "https://github.com/username/repository"
+  github-repo: ""

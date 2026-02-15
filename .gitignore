@@ -1,0 +1,24 @@
+# Secrets
+*.env
+.env.local
+secrets.yaml
+k8s/sealedsecrets.yaml
+
+# Local volumes
+home/
+workspace/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build artifacts
+*.tar
+*.tar.gz
