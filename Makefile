@@ -25,8 +25,8 @@ run:
 		-p 5800:5800 \
 		-e GITHUB_REPO="${GITHUB_REPO}" \
 		-e GITHUB_TOKEN="${GITHUB_TOKEN}" \
-		-e HAPPY_CODER_API_KEY="${HAPPY_CODER_API_KEY}" \
 		-e VNC_PASSWORD="${VNC_PASSWORD}" \
+		-e HAPPY_EXPERIMENTAL="true" \
 		-v $(PWD)/home:/home \
 		-v $(PWD)/workspace:/workspace \
 		--name antigravity \
@@ -93,7 +93,6 @@ help:
 	@echo "Environment Variables for 'make run':"
 	@echo "  GITHUB_REPO        - GitHub repository URL"
 	@echo "  GITHUB_TOKEN       - GitHub token (optional)"
-	@echo "  HAPPY_CODER_API_KEY - Happy Coder API key"
 	@echo "  VNC_PASSWORD       - VNC password (optional)"
 	@echo ""
 	@echo "Example:"

@@ -7,3 +7,7 @@ data:
   # GitHub repository to clone on startup
   # Example: "https://github.com/username/repository"
   github-repo: ""
+
+  # Happy Coder configuration (optional)
+  # happy-server-url: "https://api.cluster-fluster.com"
+  # happy-webapp-url: "https://app.happy.engineering"

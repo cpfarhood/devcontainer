@@ -77,13 +77,23 @@ spec:
               name: antigravity
               key: github-token
               optional: true
-        # Happy Coder configuration
-        - name: HAPPY_CODER_API_KEY
+        # Happy Coder configuration (optional)
+        - name: HAPPY_SERVER_URL
           valueFrom:
-            secretKeyRef:
+            configMapKeyRef:
               name: antigravity
-              key: happy-coder-api-key
+              key: happy-server-url
               optional: true
+        - name: HAPPY_WEBAPP_URL
+          valueFrom:
+            configMapKeyRef:
+              name: antigravity
+              key: happy-webapp-url
+              optional: true
+        - name: HAPPY_HOME_DIR
+          value: "/home/claude/.happy"
+        - name: HAPPY_EXPERIMENTAL
+          value: "true"
         resources:
           requests:
             memory: "2Gi"

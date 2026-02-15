@@ -14,7 +14,6 @@ resources:
 #   - name: antigravity-secrets
 #     literals:
 #       - github-token=ghp_your_token
-#       - happy-coder-api-key=your_key
 #       - vnc-password=your_password
 
 commonLabels:

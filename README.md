@@ -49,7 +49,6 @@ Edit `k8s/secrets-example.yaml` and create a sealed secret:
 ```bash
 kubectl create secret generic antigravity-secrets \
   --from-literal=github-token='ghp_your_token' \
-  --from-literal=happy-coder-api-key='your_key' \
   --from-literal=vnc-password='your_password' \
   --dry-run=client -o yaml | \
   kubeseal --format=yaml > k8s/sealedsecrets.yaml
@@ -89,12 +88,17 @@ Or configure HTTPRoute (Gateway API) for external access via your domain.
 
 ### Optional
 - `GITHUB_TOKEN` - GitHub Personal Access Token (for private repos)
-- `HAPPY_CODER_API_KEY` - API key for Happy Coder
 - `VNC_PASSWORD` - Password for VNC access
 - `USER_ID` - UID for claude user (default: 1000)
 - `GROUP_ID` - GID for claude user (default: 1000)
 - `DISPLAY_WIDTH` - VNC display width (default: 1920)
 - `DISPLAY_HEIGHT` - VNC display height (default: 1080)
+
+### Happy Coder Configuration (Optional)
+- `HAPPY_SERVER_URL` - Custom Happy server URL (default: https://api.cluster-fluster.com)
+- `HAPPY_WEBAPP_URL` - Custom Happy webapp URL (default: https://app.happy.engineering)
+- `HAPPY_HOME_DIR` - Happy data directory (default: /home/claude/.happy)
+- `HAPPY_EXPERIMENTAL` - Enable experimental features (default: true in container)
 
 ## Architecture
 
@@ -170,8 +174,8 @@ services:
     environment:
       - GITHUB_REPO=https://github.com/yourusername/yourrepo
       - GITHUB_TOKEN=ghp_your_token
-      - HAPPY_CODER_API_KEY=your_key
       - VNC_PASSWORD=yourpassword
+      - HAPPY_EXPERIMENTAL=true
     volumes:
       - ./home:/home
       - ./workspace:/workspace
@@ -188,8 +192,8 @@ docker run -d \
   -p 5800:5800 \
   -e GITHUB_REPO="https://github.com/yourusername/yourrepo" \
   -e GITHUB_TOKEN="ghp_your_token" \
-  -e HAPPY_CODER_API_KEY="your_key" \
   -e VNC_PASSWORD="yourpassword" \
+  -e HAPPY_EXPERIMENTAL="true" \
   -v $(pwd)/home:/home \
   -v $(pwd)/workspace:/workspace \
   ghcr.io/cpfarhood/antigravity:latest
