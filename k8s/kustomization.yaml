@@ -7,7 +7,7 @@ namespace: default
 resources:
   - configmap.yaml
   - statefulset.yaml
-  - ingress.yaml
+  - httproute.yaml
 
 # Uncomment to create secrets from files
 # secretGenerator:

@@ -1,0 +1,20 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: antigravity
+spec:
+  parentRefs:
+  - name: gateway  # Replace with your Gateway name
+    namespace: gateway-system  # Replace with your Gateway namespace
+  hostnames:
+  - "antigravity.example.com"  # Replace with your domain
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: antigravity
+      port: 5800
+      weight: 1

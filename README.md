@@ -80,7 +80,7 @@ kubectl port-forward statefulset/antigravity 5800:5800
 open http://localhost:5800
 ```
 
-Or configure Ingress for external access.
+Or configure HTTPRoute (Gateway API) for external access via your domain.
 
 ## Environment Variables
 
