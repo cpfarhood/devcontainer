@@ -35,7 +35,15 @@ A containerized development environment with GUI access, featuring:
 - Workspace mounted at `/workspace`
 - Repository cloned on first startup
 
+## Documentation
+
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Complete deployment guide with step-by-step instructions
+- **[VARIABLES.md](VARIABLES.md)** - Reference for all configuration variables
+- **[README.md](README.md)** - This file (overview and quick start)
+
 ## Quick Start
+
+**👉 For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md)**
 
 ### 1. Get the Image
 
