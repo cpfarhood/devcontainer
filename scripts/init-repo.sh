@@ -25,8 +25,8 @@ else
         # Configure git to use token if provided
         if [ -n "$GITHUB_TOKEN" ]; then
             git config credential.helper store
-            echo "https://oauth2:${GITHUB_TOKEN}@github.com" > /home/claude/.git-credentials
-            chmod 600 /home/claude/.git-credentials
+            echo "https://oauth2:${GITHUB_TOKEN}@github.com" > /home/.git-credentials
+            chmod 600 /home/.git-credentials
         fi
 
         git pull || echo "Pull failed, continuing anyway..."
@@ -42,29 +42,31 @@ else
 
             # Configure credentials for future use
             git config --global credential.helper store
-            echo "https://oauth2:${GITHUB_TOKEN}@github.com" > /home/claude/.git-credentials
-            chmod 600 /home/claude/.git-credentials
+            echo "https://oauth2:${GITHUB_TOKEN}@github.com" > /home/.git-credentials
+            chmod 600 /home/.git-credentials
         else
             git clone "$GITHUB_REPO" "$WORKSPACE_DIR"
         fi
     fi
 fi
 
-# Set ownership
-chown -R claude:claude "$WORKSPACE_DIR"
-chown -R claude:claude /home/claude
+# Set ownership using numeric IDs (username may not exist yet in baseimage-gui)
+RUN_UID="${USER_ID:-1000}"
+RUN_GID="${GROUP_ID:-1000}"
+chown -R "$RUN_UID:$RUN_GID" "$WORKSPACE_DIR"
+chown -R "$RUN_UID:$RUN_GID" /home
 
-# Start Happy Coder in background as claude user
+# Start Happy Coder in background as the app user
 echo "Starting Happy Coder..."
 cd "$WORKSPACE_DIR"
 
 # Create Happy Coder log file
 HAPPY_LOG="/tmp/happy-coder.log"
 touch "$HAPPY_LOG"
-chown claude:claude "$HAPPY_LOG"
+chown "$RUN_UID:$RUN_GID" "$HAPPY_LOG"
 
-# Start Happy Coder as claude user
-sudo -u claude bash -c "cd '$WORKSPACE_DIR' && happy-coder > '$HAPPY_LOG' 2>&1 &"
+# Start Happy Coder as the app user (use numeric UID for compatibility with baseimage-gui)
+sudo -u "#$RUN_UID" bash -c "cd '$WORKSPACE_DIR' && happy-coder > '$HAPPY_LOG' 2>&1 &"
 
 # Save PID for monitoring
 echo $! > /tmp/happy-coder.pid

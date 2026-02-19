@@ -2,11 +2,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: antigravity-config
+  name: antigravity
 data:
   # GitHub repository to clone on startup
   # Example: "https://github.com/username/repository"
-  github-repo: ""
+  github-repo: "https://github.com/privilegedescalation/headlamp-polaris-plugin"
 
   # Happy Coder configuration (optional)
   # happy-server-url: "https://api.cluster-fluster.com"

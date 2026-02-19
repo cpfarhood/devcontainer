@@ -34,7 +34,7 @@ spec:
         fsGroupChangePolicy: "OnRootMismatch"
       containers:
       - name: antigravity
-        image: ghcr.io/cpfarhood/antigravity:latest
+        image: ghcr.io/cpfarhood/devcontainer:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5800

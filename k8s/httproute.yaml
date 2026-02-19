@@ -5,10 +5,10 @@ metadata:
   name: antigravity
 spec:
   parentRefs:
-  - name: gateway  # Replace with your Gateway name
-    namespace: gateway-system  # Replace with your Gateway namespace
+  - name: external
+    namespace: gateway-system
   hostnames:
-  - "antigravity.example.com"  # Replace with your domain
+  - "antigravity.dev.farh.net"
   rules:
   - matches:
     - path:
