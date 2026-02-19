@@ -18,5 +18,4 @@ echo "Opening Antigravity in: $WORKSPACE_DIR"
 
 # Start Antigravity (VSCode) in the workspace directory as claude user
 # The baseimage-gui will handle the GUI display
-RUN_UID="${USER_ID:-1000}"
-exec sudo -u "#$RUN_UID" code --new-window --wait "$WORKSPACE_DIR"
+exec code --new-window --wait "$WORKSPACE_DIR"

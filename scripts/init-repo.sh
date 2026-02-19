@@ -64,8 +64,8 @@ HAPPY_LOG="/tmp/happy-coder.log"
 touch "$HAPPY_LOG"
 chown "$RUN_UID:$RUN_GID" "$HAPPY_LOG"
 
-# Start Happy Coder as the app user (use numeric UID for compatibility with baseimage-gui)
-sudo -u "#$RUN_UID" bash -c "cd '$WORKSPACE_DIR' && happy-coder > '$HAPPY_LOG' 2>&1 &"
+# Start Happy Coder (already running as the correct user via baseimage-gui)
+bash -c "cd '$WORKSPACE_DIR' && happy-coder > '$HAPPY_LOG' 2>&1 &"
 
 # Save PID for monitoring
 echo $! > /tmp/happy-coder.pid
