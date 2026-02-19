@@ -54,7 +54,6 @@ fi
 RUN_UID="${USER_ID:-1000}"
 RUN_GID="${GROUP_ID:-1000}"
 chown -R "$RUN_UID:$RUN_GID" "$WORKSPACE_DIR"
-chown -R "$RUN_UID:$RUN_GID" /home
 
 # Start Happy Coder in background as the app user
 echo "Starting Happy Coder..."
