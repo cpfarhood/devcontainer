@@ -8,7 +8,7 @@ ENV APP_NAME="Antigravity Dev Container" \
     SECURE_CONNECTION=1 \
     USER_ID=1000 \
     GROUP_ID=1000 \
-    CLAUDE_USER=claude
+    CLAUDE_USER=user
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -49,14 +49,14 @@ RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor 
     apt-get install -y code && \
     rm -rf /var/lib/apt/lists/*
 
-# Create claude user with specific UID/GID
-RUN groupadd -g 1000 claude && \
-    useradd -u 1000 -g 1000 -m -s /bin/bash claude && \
-    echo "claude ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+# Create user user with specific UID/GID
+RUN groupadd -g 1000 user && \
+    useradd -u 1000 -g 1000 -m -s /bin/bash user && \
+    echo "user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Create workspace directory
 RUN mkdir -p /workspace && \
-    chown -R claude:claude /workspace
+    chown -R user:user /workspace
 
 # Copy startup script
 COPY --chmod=755 scripts/startapp.sh /startapp.sh
@@ -65,9 +65,9 @@ COPY --chmod=755 scripts/init-repo.sh /usr/local/bin/init-repo
 # Set working directory
 WORKDIR /workspace
 
-# Configure container to run as claude user
-ENV HOME=/home/claude \
-    USER=claude
+# Configure container to run as user user
+ENV HOME=/home/user \
+    USER=user
 
 # Expose VNC port (baseimage-gui default)
 EXPOSE 5800
