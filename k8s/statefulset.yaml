@@ -57,7 +57,7 @@ spec:
         - name: DISPLAY_HEIGHT
           value: "1080"
         - name: SECURE_CONNECTION
-          value: "1"
+          value: "0"
         - name: VNC_PASSWORD
           valueFrom:
             secretKeyRef:
