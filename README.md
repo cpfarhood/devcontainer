@@ -2,366 +2,227 @@
 
 ![Build and Push](https://github.com/cpfarhood/devcontainer/actions/workflows/build-and-push.yaml/badge.svg)
 
-A containerized development environment with GUI access, featuring:
-- **Antigravity** (VSCode/Cloud IDE) via web browser
-- **Happy Coder** - AI-powered development assistant
-- **Automatic GitHub repo cloning**
-- **Persistent user home directory**
-- **Secure non-root execution**
-
-## Features
-
-### GUI Access
-- Web-based VNC interface (port 5800)
-- Full desktop environment in your browser
-- Secure connections with optional password protection
-
-### Development Tools
-- Antigravity IDE (VSCode-based)
-- Happy Coder AI assistant
-- Git integration
-- Node.js and npm
-- Python 3
-- Chrome browser
-
-### Security
-- Runs as non-root user `claude` (UID 1000, GID 1000)
-- Secure VNC connections
-- Token-based GitHub authentication
-- Isolated workspace
-
-### Persistence
-- ReadWriteMany PVC for `/home` (user data persists)
-- Workspace mounted at `/workspace`
-- Repository cloned on first startup
-
-## Documentation
-
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Complete deployment guide with step-by-step instructions
-- **[VARIABLES.md](VARIABLES.md)** - Reference for all configuration variables
-- **[README.md](README.md)** - This file (overview and quick start)
+A containerized cloud development environment with web-based GUI access, featuring:
+- **VSCode** via browser-based VNC (port 5800)
+- **Happy Coder** AI assistant backed by Claude
+- **Automatic GitHub repo cloning** on startup
+- **Persistent home directory** via ReadWriteMany PVC
+- **Kubernetes-native** Helm chart deployment
 
 ## Quick Start
 
-**👉 For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md)**
+### 1. Create a secret
 
-### 1. Get the Image
+The secret is picked up automatically via `envFrom`. Keys recognised:
 
-The image is automatically built and published to GitHub Container Registry on every push to main.
+| Key | Purpose |
+|-----|---------|
+| `GITHUB_TOKEN` | PAT for private repo access (`repo` scope) |
+| `VNC_PASSWORD` | Password for the VNC web UI |
+| `ANTHROPIC_API_KEY` | API key — alternative to browser-based Claude login |
 
 ```bash
-# Pull the latest image
-docker pull ghcr.io/cpfarhood/devcontainer:latest
-
-# Or pull a specific version
-docker pull ghcr.io/cpfarhood/devcontainer:v1.0.0
+kubectl create secret generic devcontainer-mydev-secrets-env \
+  --from-literal=GITHUB_TOKEN='ghp_...' \
+  --from-literal=VNC_PASSWORD='changeme'
 ```
 
-**Building locally (optional):**
+Or use SealedSecrets:
+
+```bash
+kubectl create secret generic devcontainer-mydev-secrets-env \
+  --from-literal=GITHUB_TOKEN='ghp_...' \
+  --from-literal=VNC_PASSWORD='changeme' \
+  --dry-run=client -o yaml | \
+  kubeseal --format=yaml | kubectl apply -f -
+```
+
+### 2. Deploy with Helm
+
+```bash
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo
+```
+
+### 3. Access
+
+```bash
+# Local port-forward
+kubectl port-forward deployment/devcontainer-mydev 5800:5800
+open http://localhost:5800
+```
+
+Or configure an ingress / Gateway API HTTPRoute pointing at port 5800.
+
+### 4. Authenticate Claude
+
+On first launch, open a terminal in the VSCode GUI and run:
+
+```bash
+claude
+```
+
+A Chrome browser window will open inside VNC for the Claude Max OAuth login. Credentials are stored on the home PVC and persist across pod restarts.
+
+---
+
+## Helm Chart Reference
+
+### Core values
+
+| Value | Default | Description |
+|-------|---------|-------------|
+| `name` | `""` | Instance name — used in all resource names (`devcontainer-{name}`) |
+| `githubRepo` | `""` | Repository to clone into `/workspace` on startup |
+| `image.repository` | `ghcr.io/cpfarhood/devcontainer` | Container image |
+| `image.tag` | `latest` | Image tag |
+
+### Happy Coder
+
+| Value | Default | Description |
+|-------|---------|-------------|
+| `happyServerUrl` | `https://happy.farh.net` | Happy Coder server endpoint |
+| `happyWebappUrl` | `https://happy-coder.farh.net` | Happy Coder webapp URL |
+| `happyHomeDir` | `/workspace/.happy` | Happy runtime state directory (ephemeral — lives in emptyDir) |
+| `happyExperimental` | `true` | Enable experimental Happy features |
+
+### Kubernetes cluster access
+
+The `clusterAccess` value provisions a ServiceAccount, Role/ClusterRole, and binding so the devcontainer pod can interact with the Kubernetes API. The default is `none` — no RBAC resources are created.
+
+| Value | Scope | Verbs |
+|-------|-------|-------|
+| `none` (default) | — | no access |
+| `readonlyns` | release namespace | `get`, `list`, `watch` |
+| `readwritens` | release namespace | `*` |
+| `readonly` | cluster-wide | `get`, `list`, `watch` |
+| `readwrite` | cluster-wide | `*` |
+
+```bash
+# Give the pod read-only access to its own namespace
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set clusterAccess=readonlyns
+```
+
+With any non-`none` value, a `ServiceAccount` named `devcontainer-{name}` is created and set as the pod's `serviceAccountName`, so `kubectl` and any in-cluster API calls use it automatically.
+
+### Display and resources
+
+| Value | Default | Description |
+|-------|---------|-------------|
+| `display.width` | `1920` | VNC width (px) |
+| `display.height` | `1080` | VNC height (px) |
+| `secureConnection` | `0` | Set to `1` if TLS is not terminated upstream |
+| `userId` | `1000` | UID for the app user |
+| `groupId` | `1000` | GID for the app user |
+| `storage.size` | `32Gi` | Home PVC size |
+| `storage.className` | `ceph-filesystem` | StorageClass (must be ReadWriteMany) |
+| `resources.requests.memory` | `2Gi` | |
+| `resources.requests.cpu` | `1000m` | |
+| `resources.limits.memory` | `8Gi` | |
+| `resources.limits.cpu` | `4000m` | |
+| `envSecretName` | `devcontainer-{name}-secrets-env` | Override the secret name |
+
+---
+
+## Architecture
+
+### Startup flow
+
+```
+Container start (as app user, UID 1000)
+  → cont-init.d/20-fix-user-shell.sh   — fix shell/home on baseimage-gui app user
+  → /startapp.sh
+      → init-repo.sh
+          → clone / pull GITHUB_REPO into /workspace/{repo}
+          → happy daemon start          — starts Happy Coder background daemon
+      → code --new-window /workspace/{repo}   — opens VSCode in VNC
+```
+
+### Storage
+
+| Mount | Source | Persistence |
+|-------|--------|-------------|
+| `/home` | ReadWriteMany PVC (`userhome-{name}`) | Survives pod restarts — stores Claude credentials, dotfiles, git config |
+| `/workspace` | `emptyDir` | Ephemeral — repo is re-cloned on each pod start |
+
+Happy Coder's runtime state (`HAPPY_HOME_DIR`) is kept in `/workspace/.happy` so stale lock files never survive a pod restart.
+
+---
+
+## Troubleshooting
+
+### Happy Coder daemon not starting
+
+```bash
+# Check daemon status
+happy daemon status
+
+# Start manually (also clears any stale lock)
+happy daemon start
+
+# View daemon logs
+ls ~/.happy/logs/ || ls /workspace/.happy/logs/
+```
+
+### Claude not authenticated
+
+Browser-based OAuth login is the primary method (works inside VNC via the Chrome wrapper). If you prefer API key auth:
+
+```bash
+kubectl patch secret devcontainer-mydev-secrets-env \
+  --type='json' \
+  -p='[{"op":"add","path":"/data/ANTHROPIC_API_KEY","value":"'$(echo -n "sk-ant-..." | base64)'"}]'
+```
+
+Then restart the pod to pick up the new env var.
+
+### VNC not loading
+
+```bash
+kubectl port-forward deployment/devcontainer-mydev 5800:5800
+kubectl logs deployment/devcontainer-mydev
+kubectl describe pod -l instance=mydev
+```
+
+### Repository not cloning
+
+```bash
+kubectl logs deployment/devcontainer-mydev | grep "Repository Initialization"
+kubectl exec deployment/devcontainer-mydev -- env | grep GITHUB
+```
+
+---
+
+## Local Docker run
+
+```bash
+docker run -d \
+  -p 5800:5800 \
+  -e GITHUB_REPO="https://github.com/youruser/yourrepo" \
+  -e GITHUB_TOKEN="ghp_..." \
+  -e VNC_PASSWORD="changeme" \
+  -v $(pwd)/home:/home \
+  ghcr.io/cpfarhood/devcontainer:latest
+```
+
+---
+
+## Building
+
 ```bash
 docker build -t ghcr.io/cpfarhood/devcontainer:latest .
 docker push ghcr.io/cpfarhood/devcontainer:latest
 ```
 
-### 2. Configure Secrets
+The image is also built and pushed automatically by CI on every push to `main` and on version tags (`v*`).
 
-Edit `k8s/secrets-example.yaml` and create a sealed secret:
-
-```bash
-kubectl create secret generic antigravity-secrets \
-  --from-literal=github-token='ghp_your_token' \
-  --from-literal=vnc-password='your_password' \
-  --dry-run=client -o yaml | \
-  kubeseal --format=yaml > k8s/sealedsecrets.yaml
-```
-
-### 3. Configure Repository
-
-Edit `k8s/configmap.yaml`:
-
-```yaml
-data:
-  github-repo: "https://github.com/yourusername/yourrepo"
-```
-
-### 4. Deploy to Kubernetes
-
-```bash
-kubectl apply -k k8s/
-```
-
-### 5. Access the Interface
-
-```bash
-# Port forward for local access
-kubectl port-forward statefulset/antigravity 5800:5800
-
-# Open in browser
-open http://localhost:5800
-```
-
-Or configure HTTPRoute (Gateway API) for external access via your domain.
-
-## Environment Variables
-
-### Required
-- `GITHUB_REPO` - GitHub repository URL to clone
-
-### Optional
-- `GITHUB_TOKEN` - GitHub Personal Access Token (for private repos)
-- `VNC_PASSWORD` - Password for VNC access
-- `USER_ID` - UID for claude user (default: 1000)
-- `GROUP_ID` - GID for claude user (default: 1000)
-- `DISPLAY_WIDTH` - VNC display width (default: 1920)
-- `DISPLAY_HEIGHT` - VNC display height (default: 1080)
-
-### Happy Coder Configuration (Optional)
-- `HAPPY_SERVER_URL` - Custom Happy server URL (default: https://api.cluster-fluster.com)
-- `HAPPY_WEBAPP_URL` - Custom Happy webapp URL (default: https://app.happy.engineering)
-- `HAPPY_HOME_DIR` - Happy data directory (default: /home/claude/.happy)
-- `HAPPY_EXPERIMENTAL` - Enable experimental features (default: true in container)
-
-## Architecture
-
-```
-┌─────────────────────────────────────┐
-│  Web Browser (Port 5800)            │
-└──────────────┬──────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────┐
-│  VNC Web Interface                  │
-│  (jlesage/baseimage-gui)            │
-└──────────────┬──────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────┐
-│  Antigravity IDE                    │
-│  (VSCode + Extensions)              │
-│  Running as user: claude (1000)     │
-└──────────────┬──────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────┐
-│  Happy Coder (Background Process)   │
-│  AI Development Assistant           │
-└─────────────────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────┐
-│  Workspace: /workspace/{repo}       │
-│  Home: /home/claude (RWX PVC)       │
-└─────────────────────────────────────┘
-```
-
-## Startup Flow
-
-1. **Container starts** - baseimage-gui initializes
-2. **init-repo.sh runs**:
-   - Checks for `GITHUB_REPO` environment variable
-   - Clones repository to `/workspace/{repo-name}` if not exists
-   - Configures git credentials with `GITHUB_TOKEN`
-   - Starts Happy Coder in background
-3. **startapp.sh runs**:
-   - Opens Antigravity IDE in the cloned repository
-   - Happy Coder is already running and accessible
-
-## Happy Coder Integration
-
-Happy Coder runs as a background service and is accessible within the IDE:
-
-```bash
-# Check Happy Coder status
-ps aux | grep happy-coder
-
-# View logs
-cat /tmp/happy-coder.log
-
-# Restart Happy Coder
-sudo -u claude bash -c "cd /workspace/your-repo && happy-coder &"
-```
-
-## Local Development
-
-### Run with Docker Compose
-
-```yaml
-version: '3.8'
-services:
-  antigravity:
-    build: .
-    ports:
-      - "5800:5800"
-    environment:
-      - GITHUB_REPO=https://github.com/yourusername/yourrepo
-      - GITHUB_TOKEN=ghp_your_token
-      - VNC_PASSWORD=yourpassword
-      - HAPPY_EXPERIMENTAL=true
-    volumes:
-      - ./home:/home
-      - ./workspace:/workspace
-```
-
-```bash
-docker-compose up
-```
-
-### Run with Docker
-
-```bash
-docker run -d \
-  -p 5800:5800 \
-  -e GITHUB_REPO="https://github.com/yourusername/yourrepo" \
-  -e GITHUB_TOKEN="ghp_your_token" \
-  -e VNC_PASSWORD="yourpassword" \
-  -e HAPPY_EXPERIMENTAL="true" \
-  -v $(pwd)/home:/home \
-  -v $(pwd)/workspace:/workspace \
-  ghcr.io/cpfarhood/antigravity:latest
-```
-
-## Kubernetes Deployment
-
-### With Flux
-
-See the animaniacs cluster configuration for GitOps deployment patterns.
-
-### Standalone
-
-```bash
-# Apply manifests
-kubectl apply -k k8s/
-
-# Check status
-kubectl get statefulset antigravity
-kubectl get pods -l app=antigravity
-
-# Access logs
-kubectl logs antigravity-0
-
-# Access shell
-kubectl exec -it antigravity-0 -- bash
-```
-
-## Troubleshooting
-
-### Repository not cloning
-
-```bash
-# Check logs
-kubectl logs antigravity-0 | grep "Repository Initialization"
-
-# Verify GITHUB_REPO is set
-kubectl exec antigravity-0 -- env | grep GITHUB
-
-# Check git credentials
-kubectl exec antigravity-0 -- cat /home/claude/.git-credentials
-```
-
-### Happy Coder not starting
-
-```bash
-# Check Happy Coder logs
-kubectl exec antigravity-0 -- cat /tmp/happy-coder.log
-
-# Verify API key
-kubectl exec antigravity-0 -- env | grep HAPPY_CODER
-
-# Restart Happy Coder
-kubectl exec antigravity-0 -- sudo -u claude bash -c "cd /workspace/repo && happy-coder &"
-```
-
-### VNC not accessible
-
-```bash
-# Check port forwarding
-kubectl port-forward antigravity-0 5800:5800
-
-# Verify service
-kubectl get svc antigravity
-
-# Check pod status
-kubectl describe pod antigravity-0
-```
-
-### Permission issues
-
-```bash
-# Check ownership
-kubectl exec antigravity-0 -- ls -la /home/claude
-kubectl exec antigravity-0 -- ls -la /workspace
-
-# Fix ownership
-kubectl exec antigravity-0 -- chown -R claude:claude /home/claude
-kubectl exec antigravity-0 -- chown -R claude:claude /workspace
-```
-
-## Security Considerations
-
-1. **Secrets Management**: Use SealedSecrets or external secret managers
-2. **Network Policies**: Restrict ingress/egress as needed
-3. **RBAC**: Limit who can access the namespace
-4. **VNC Password**: Always set a strong VNC password
-5. **GitHub Token**: Use fine-grained tokens with minimal permissions
-6. **Container Security**: Runs as non-root user (claude:1000)
-
-## Storage
-
-### Home Directory (`/home`)
-- Mounted from ReadWriteMany PVC (`userhome`)
-- Persists user settings, credentials, history
-- Survives pod restarts
-
-### Workspace (`/workspace`)
-- ephemeral emptyDir (can be changed to PVC)
-- Contains cloned repository
-- Rebuild on pod restart
-
-To persist workspace:
-1. Create a PVC for workspace
-2. Update `statefulset.yaml` to use PVC instead of emptyDir
-
-## Customization
-
-### Add More Tools
-
-Edit `Dockerfile`:
-
-```dockerfile
-RUN apt-get update && apt-get install -y \
-    your-package-here \
-    && rm -rf /var/lib/apt/lists/*
-```
-
-### Change Display Resolution
-
-Set environment variables:
-
-```yaml
-env:
-  - name: DISPLAY_WIDTH
-    value: "2560"
-  - name: DISPLAY_HEIGHT
-    value: "1440"
-```
-
-### Auto-clone Multiple Repos
-
-Modify `init-repo.sh` to support `GITHUB_REPOS` (comma-separated):
-
-```bash
-IFS=',' read -ra REPOS <<< "$GITHUB_REPOS"
-for repo in "${REPOS[@]}"; do
-  # Clone each repo
-done
-```
-
-## License
-
-MIT
+---
 
 ## Credits
 
-- Built on [jlesage/baseimage-gui](https://github.com/jlesage/docker-baseimage-gui)
-- Uses [Happy Coder](https://happy.engineering)
-- Inspired by Google's Project IDX
+- Base image: [jlesage/docker-baseimage-gui](https://github.com/jlesage/docker-baseimage-gui)
+- AI assistant: [Happy Coder](https://happy.engineering) + [Claude](https://claude.ai)
