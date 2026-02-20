@@ -59,13 +59,12 @@ chown -R "$RUN_UID:$RUN_GID" "$WORKSPACE_DIR"
 mkdir -p "$HOME"
 chown "$RUN_UID:$RUN_GID" "$HOME"
 
-# Start Happy Coder daemon as the app user so it can access user credentials
-# (running as root means HOME=/root, Claude Code and Happy config would be missing)
+# Start Happy Coder daemon. startapp.sh already runs as the app user (UID 1000),
+# so no sudo needed — Happy/Claude Code will find credentials in the correct home dir.
 echo "Starting Happy Coder..."
 
-RUN_USER=$(id -nu "$RUN_UID" 2>/dev/null || echo "user")
-sudo -u "$RUN_USER" -E sh -c "cd '$WORKSPACE_DIR' && happy daemon start" \
-    || echo "Happy Coder daemon failed to start, continuing anyway..."
+cd "$WORKSPACE_DIR"
+happy daemon start || echo "Happy Coder daemon failed to start, continuing anyway..."
 
 echo "Happy Coder daemon started"
 
