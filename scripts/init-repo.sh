@@ -63,9 +63,10 @@ chown "$RUN_UID:$RUN_GID" "$HOME"
 # so no sudo needed — Happy/Claude Code will find credentials in the correct home dir.
 echo "Starting Happy Coder..."
 
-# Remove stale lock file left by a previously crashed daemon — without this,
-# happy daemon start refuses to start and exits with "Failed to start daemon".
-rm -f "${HAPPY_HOME_DIR:-$HOME/.happy}/daemon.state.json.lock"
+# HAPPY_HOME_DIR is in /workspace (emptyDir), so it is always fresh on pod start.
+# Remove the lock file as a safety net in case daemon start is called more than
+# once within the same container lifetime.
+rm -f "${HAPPY_HOME_DIR:-/workspace/.happy}/daemon.state.json.lock"
 
 cd "$WORKSPACE_DIR"
 happy daemon start || echo "Happy Coder daemon failed to start, continuing anyway..."
