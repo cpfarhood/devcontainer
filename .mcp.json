@@ -1,29 +1,17 @@
 {
   "mcpServers": {
-    "github": {
-      "command": "github-mcp-server",
-      "args": ["stdio"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${CLAUDE_GITHUB_TOKEN}"
-      }
+    "kubernetes": {
+      "type": "sse",
+      "url": "http://kubernetes-mcp-server.kube-system.svc.cluster.local:8080/sse"
     },
-    "kubernetes (local)": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "kubernetes-mcp-server@latest"
-      ]
+    "flux": {
+      "type": "sse",
+      "url": "http://flux-mcp.flux-system.svc.cluster.local:8080/sse"
     },
-    "flux (local)":{
-      "command":"flux-operator-mcp",
-      "args":["serve"],
-      "env":{
-        "KUBECONFIG":"/Users/cpfarhood/.kube/config"
-      }
-    },
-    "playwright": {
-      "command": "npx",
-      "args": ["-y", "@playwright/mcp@latest"]
-    }
+    "playwright": {                                                                                                                                                                           
+      "type": "sse",                                                                                                                                                                          
+      "url": "http://playwright-mcp.playwright.svc.cluster.local:3000/sse"                                                                                                                    
+    } 
   }
 }
+
