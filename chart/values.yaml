@@ -9,6 +9,17 @@ image:
 # GitHub repository to clone into /workspace
 githubRepo: ""
 
+# IDE to launch inside the container.
+# Options:
+#   vscode      — VSCode via VNC browser UI on port 5800 (default)
+#   antigravity — Google Antigravity (VSCode fork) via VNC on port 5800
+#   none        — no IDE; useful when ssh: true is the sole access method
+ide: vscode
+
+# Start an OpenSSH server on port 22 in addition to the IDE.
+# Set SSH_AUTHORIZED_KEYS in the env secret to allow key-based login.
+ssh: false
+
 # Happy Coder endpoints
 happyServerUrl: "https://happy.farh.net"
 happyWebappUrl: "https://happy-coder.farh.net"

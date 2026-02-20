@@ -20,6 +20,7 @@ The secret is picked up automatically via `envFrom`. Keys recognised:
 | `GITHUB_TOKEN` | PAT for private repo access (`repo` scope) |
 | `VNC_PASSWORD` | Password for the VNC web UI |
 | `ANTHROPIC_API_KEY` | API key — alternative to browser-based Claude login |
+| `SSH_AUTHORIZED_KEYS` | Public key(s) for SSH access (required when `ssh: true`) |
 
 ```bash
 kubectl create secret generic devcontainer-mydev-secrets-env \
@@ -75,8 +76,47 @@ A Chrome browser window will open inside VNC for the Claude Max OAuth login. Cre
 |-------|---------|-------------|
 | `name` | `""` | Instance name — used in all resource names (`devcontainer-{name}`) |
 | `githubRepo` | `""` | Repository to clone into `/workspace` on startup |
+| `ide` | `vscode` | IDE to launch — `vscode`, `antigravity`, or `none` (see below) |
+| `ssh` | `false` | Also start an OpenSSH server on port 22 (additive, any `ide`) |
 | `image.repository` | `ghcr.io/cpfarhood/devcontainer` | Container image |
 | `image.tag` | `latest` | Image tag |
+
+### IDE choice
+
+`ide` controls what GUI is launched in the VNC session:
+
+| Value | Port | Description |
+|-------|------|-------------|
+| `vscode` (default) | 5800 (VNC) | VSCode desktop via browser-based VNC |
+| `antigravity` | 5800 (VNC) | Google Antigravity (VSCode fork with AI) via VNC |
+| `none` | — | No IDE; container stays alive (useful when `ssh: true`) |
+
+### SSH access
+
+`ssh: true` starts OpenSSH on port 22 **in addition to** the IDE. It works with any `ide` value:
+
+```bash
+# SSH-only (no VNC)
+helm install mydev ./chart --set name=mydev --set ide=none --set ssh=true
+
+# VSCode in VNC + SSH access at the same time
+helm install mydev ./chart --set name=mydev --set ssh=true
+```
+
+Add your public key to the env secret:
+
+```bash
+kubectl create secret generic devcontainer-mydev-secrets-env \
+  --from-literal=GITHUB_TOKEN='ghp_...' \
+  --from-literal=SSH_AUTHORIZED_KEYS='ssh-ed25519 AAAA...'
+```
+
+Then connect:
+
+```bash
+kubectl port-forward deployment/devcontainer-mydev 2222:22
+ssh -p 2222 user@localhost
+```
 
 ### Happy Coder
 
@@ -84,7 +124,7 @@ A Chrome browser window will open inside VNC for the Claude Max OAuth login. Cre
 |-------|---------|-------------|
 | `happyServerUrl` | `https://happy.farh.net` | Happy Coder server endpoint |
 | `happyWebappUrl` | `https://happy-coder.farh.net` | Happy Coder webapp URL |
-| `happyHomeDir` | `/workspace/.happy` | Happy runtime state directory (ephemeral — lives in emptyDir) |
+| `happyHomeDir` | `/home/user/.happy` | Happy runtime state directory (persists on the home PVC) |
 | `happyExperimental` | `true` | Enable experimental Happy features |
 
 ### Kubernetes cluster access
@@ -133,13 +173,18 @@ With any non-`none` value, a `ServiceAccount` named `devcontainer-{name}` is cre
 ### Startup flow
 
 ```
-Container start (as app user, UID 1000)
+Container start
   → cont-init.d/20-fix-user-shell.sh   — fix shell/home on baseimage-gui app user
-  → /startapp.sh
+  → cont-init.d/25-start-sshd.sh       — start sshd if SSH=true
+  → /startapp.sh  (runs as app user, UID 1000)
       → init-repo.sh
           → clone / pull GITHUB_REPO into /workspace/{repo}
-          → happy daemon start          — starts Happy Coder background daemon
-      → code --new-window /workspace/{repo}   — opens VSCode in VNC
+          → rm daemon.state.json.lock    — clear stale Happy lock
+          → happy daemon start           — starts Happy Coder background daemon
+      → IDE=vscode:      code --new-window --wait /workspace/{repo}
+        IDE=antigravity:  antigravity --new-window --wait /workspace/{repo}
+        IDE=none:         sleep infinity
+      (SSH=true: sshd also running as root on port 22)
 ```
 
 ### Storage
@@ -149,7 +194,7 @@ Container start (as app user, UID 1000)
 | `/home` | ReadWriteMany PVC (`userhome-{name}`) | Survives pod restarts — stores Claude credentials, dotfiles, git config |
 | `/workspace` | `emptyDir` | Ephemeral — repo is re-cloned on each pod start |
 
-Happy Coder's runtime state (`HAPPY_HOME_DIR`) is kept in `/workspace/.happy` so stale lock files never survive a pod restart.
+Happy Coder's runtime state (`HAPPY_HOME_DIR`) is kept in `/home/user/.happy` on the persistent home PVC, so auth credentials and settings survive pod restarts. A stale lock file (`daemon.state.json.lock`) is removed automatically on each startup.
 
 ---
 
@@ -165,7 +210,7 @@ happy daemon status
 happy daemon start
 
 # View daemon logs
-ls ~/.happy/logs/ || ls /workspace/.happy/logs/
+ls ~/.happy/logs/
 ```
 
 ### Claude not authenticated

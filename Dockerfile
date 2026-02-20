@@ -46,14 +46,32 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
 # Install Happy Coder and Claude Code globally
 RUN npm install -g happy-coder @anthropic-ai/claude-code
 
-# Install Antigravity (Google's Project IDX / Cloud Code alternative)
-# Note: Antigravity might be packaged differently - adjust as needed
-# For now, we'll use VSCode with Project IDX extensions as a placeholder
+# Install VSCode
 RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/packages.microsoft.gpg && \
     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list && \
     apt-get update && \
     apt-get install -y code && \
     rm -rf /var/lib/apt/lists/*
+
+# Install Google Antigravity IDE
+RUN mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://us-central1-apt.pkg.dev/doc/repo-signing-key.gpg | \
+      gpg --dearmor --yes -o /etc/apt/keyrings/antigravity-repo-key.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev/ antigravity-debian main" \
+      > /etc/apt/sources.list.d/antigravity.list && \
+    apt-get update && \
+    apt-get install -y antigravity && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install OpenSSH server (for SSH IDE mode)
+RUN apt-get update && \
+    apt-get install -y openssh-server && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /var/run/sshd && \
+    sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config && \
+    sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config && \
+    echo "PermitRootLogin no" >> /etc/ssh/sshd_config
 
 # Create user user with specific UID/GID
 RUN groupadd -g 1000 user && \
@@ -69,6 +87,7 @@ COPY --chmod=755 scripts/startapp.sh /startapp.sh
 COPY --chmod=755 scripts/init-repo.sh /usr/local/bin/init-repo
 # Fix app user shell after baseimage-gui creates it at runtime
 COPY --chmod=755 scripts/cont-init-user.sh /etc/cont-init.d/20-fix-user-shell.sh
+COPY --chmod=755 scripts/cont-init-sshd.sh /etc/cont-init.d/25-start-sshd.sh
 
 # Set working directory
 WORKDIR /workspace
