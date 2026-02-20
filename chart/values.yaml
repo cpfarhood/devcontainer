@@ -41,6 +41,11 @@ storage:
   size: 32Gi
   className: ceph-filesystem
 
+# Shared memory size — mounted at /dev/shm as a memory-backed emptyDir.
+# Electron apps (Antigravity, Chrome) use /dev/shm for GPU/IPC buffers.
+shm:
+  sizeLimit: 2Gi
+
 resources:
   requests:
     memory: "2Gi"
