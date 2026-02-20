@@ -37,8 +37,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Happy Coder globally
-RUN npm install -g happy-coder
+# Install Happy Coder and Claude Code globally
+RUN npm install -g happy-coder @anthropic-ai/claude-code
 
 # Install Antigravity (Google's Project IDX / Cloud Code alternative)
 # Note: Antigravity might be packaged differently - adjust as needed
