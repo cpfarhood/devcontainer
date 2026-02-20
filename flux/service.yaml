@@ -4,10 +4,12 @@ metadata:
   name: devcontainer-${NAME}
   labels:
     app: devcontainer
+    instance: ${NAME}
 spec:
   ports:
     - port: 5800
       name: vnc-web
       protocol: TCP
   selector:
-    app: devcontainer-${NAME}
+    app: devcontainer
+    instance: ${NAME}

@@ -1,14 +1,14 @@
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: devcontainer-${NAME}
 spec:
-  replicas: 1
   template:
     metadata:
       labels:
-        app: devcontainer-${NAME}
+        app: devcontainer
+        instance: ${NAME}
     spec:
       securityContext:
         fsGroup: 1000
@@ -44,8 +44,10 @@ spec:
             - name: HAPPY_EXPERIMENTAL
               value: "true"
           envFrom:
-            - configMapRef: ${ENV_CONFIGMAP}
-            - secretRef: ${ENV_SECRETS}
+            - configMapRef:
+                name: ${ENV_CONFIGMAP}
+            - secretRef:
+                name: ${ENV_SECRETS}
           resources:
             requests:
               memory: "2Gi"
@@ -68,12 +70,6 @@ spec:
       volumes:
         - name: workspace
           emptyDir: {}
-  volumeClaimTemplates:
-    - metadata:
-        name: userhome
-      spec:
-        accessModes: ["ReadWriteMany"]
-        storageClassName: "ceph-filesystem"
-        resources:
-          requests:
-            storage: 10Gi
+        - name: userhome
+          persistentVolumeClaim:
+            claimName: userhome-${NAME}
