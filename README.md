@@ -3,7 +3,8 @@
 ![Build and Push](https://github.com/cpfarhood/devcontainer/actions/workflows/build-and-push.yaml/badge.svg)
 
 A containerized cloud development environment with web-based GUI access, featuring:
-- **VSCode** via browser-based VNC (port 5800)
+- **VSCode or Google Antigravity** via browser-based VNC (port 5800)
+- **SSH access** option (OpenSSH on port 22, additive with any IDE)
 - **Happy Coder** AI assistant backed by Claude
 - **Automatic GitHub repo cloning** on startup
 - **Persistent home directory** via ReadWriteMany PVC
@@ -160,6 +161,7 @@ With any non-`none` value, a `ServiceAccount` named `devcontainer-{name}` is cre
 | `groupId` | `1000` | GID for the app user |
 | `storage.size` | `32Gi` | Home PVC size |
 | `storage.className` | `ceph-filesystem` | StorageClass (must be ReadWriteMany) |
+| `shm.sizeLimit` | `2Gi` | `/dev/shm` size (memory-backed; used by Electron apps) |
 | `resources.requests.memory` | `2Gi` | |
 | `resources.requests.cpu` | `1000m` | |
 | `resources.limits.memory` | `8Gi` | |
@@ -182,9 +184,9 @@ Container start
           → rm daemon.state.json.lock    — clear stale Happy lock
           → happy daemon start           — starts Happy Coder background daemon
       → IDE=vscode:      code --new-window --wait /workspace/{repo}
-        IDE=antigravity:  antigravity --new-window --wait /workspace/{repo}
+        IDE=antigravity:  antigravity --no-sandbox --user-data-dir ~/.config/antigravity ... /workspace/{repo}
         IDE=none:         sleep infinity
-      (SSH=true: sshd also running as root on port 22)
+      (SSH=true: sshd also running as root on port 22; host keys persisted on PVC)
 ```
 
 ### Storage
@@ -230,7 +232,15 @@ Then restart the pod to pick up the new env var.
 ```bash
 kubectl port-forward deployment/devcontainer-mydev 5800:5800
 kubectl logs deployment/devcontainer-mydev
-kubectl describe pod -l instance=mydev
+kubectl describe pod -l app.kubernetes.io/instance=mydev
+```
+
+### Pod not picking up new image after upgrade
+
+The chart uses `image.tag: latest`. Kubernetes won't restart the pod on a Helm upgrade unless the Deployment spec changes. Force a restart manually:
+
+```bash
+kubectl rollout restart deployment/devcontainer-mydev
 ```
 
 ### Repository not cloning
