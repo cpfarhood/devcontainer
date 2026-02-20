@@ -6,17 +6,10 @@ resources:
   - statefulset.yaml
   - service.yaml
 
-# Uncomment to create secrets from files
-# secretGenerator:
-#   - name: antigravity-secrets
-#     literals:
-#       - github-token=ghp_your_token
-#       - vnc-password=your_password
-
 commonLabels:
-  app: antigravity
-  environment: production
+  app: devcontainer
+  environment: development
 
 commonAnnotations:
   managed-by: kustomize
-  description: "Antigravity Dev Container with Happy Coder"
+  description: "Dev Container with Happy Coder"

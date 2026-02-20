@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: devcontainer
+  name: devcontainer-${NAME}
   labels:
     app: devcontainer
 spec:
@@ -10,4 +10,4 @@ spec:
       name: vnc-web
       protocol: TCP
   selector:
-    app: devcontainer
+    app: devcontainer-${NAME}

@@ -2,23 +2,19 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: antigravity
+  name: devcontainer-${NAME}
 spec:
-  serviceName: "antigravity"
   replicas: 1
-  selector:
-    matchLabels:
-      app: devcontainer
   template:
     metadata:
       labels:
-        app: devcontainer
+        app: devcontainer-${NAME}
     spec:
       securityContext:
         fsGroup: 1000
         fsGroupChangePolicy: "OnRootMismatch"
       containers:
-        - name: antigravity
+        - name: devcontainer
           image: ghcr.io/cpfarhood/devcontainer:latest
           imagePullPolicy: Always
           ports:
