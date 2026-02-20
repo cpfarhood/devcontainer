@@ -21,7 +21,8 @@ echo "Workspace: $WORKSPACE_DIR"
 case "$IDE" in
     antigravity)
         echo "Opening Google Antigravity in: $WORKSPACE_DIR"
-        exec antigravity --new-window --wait "$WORKSPACE_DIR"
+        # --no-sandbox and --disable-dev-shm-usage are required for Electron apps in Docker
+        exec antigravity --no-sandbox --disable-dev-shm-usage --new-window --wait "$WORKSPACE_DIR"
         ;;
     none)
         echo "IDE=none: no IDE launched, keeping container alive."
