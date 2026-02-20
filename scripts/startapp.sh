@@ -21,8 +21,13 @@ echo "Workspace: $WORKSPACE_DIR"
 case "$IDE" in
     antigravity)
         echo "Opening Google Antigravity in: $WORKSPACE_DIR"
-        # --no-sandbox is required for Electron apps in Docker (no kernel sandbox available)
-        exec antigravity --no-sandbox --new-window --wait "$WORKSPACE_DIR"
+        # --no-sandbox is required for Electron apps in Docker (no kernel sandbox available).
+        # Explicit --user-data-dir and --extensions-dir pin config to the home PVC so
+        # settings and the setup wizard state survive pod restarts.
+        exec antigravity --no-sandbox \
+            --user-data-dir "$HOME/.config/antigravity" \
+            --extensions-dir "$HOME/.antigravity/extensions" \
+            --new-window --wait "$WORKSPACE_DIR"
         ;;
     none)
         echo "IDE=none: no IDE launched, keeping container alive."
