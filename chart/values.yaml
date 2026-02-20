@@ -12,7 +12,7 @@ githubRepo: ""
 # Happy Coder endpoints
 happyServerUrl: "https://happy.farh.net"
 happyWebappUrl: "https://happy-coder.farh.net"
-happyHomeDir: "/workspace/.happy"
+happyHomeDir: "/home/user/.happy"
 happyExperimental: "true"
 
 # VNC display
