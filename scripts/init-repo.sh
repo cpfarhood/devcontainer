@@ -25,8 +25,8 @@ else
         # Configure git to use token if provided
         if [ -n "$GITHUB_TOKEN" ]; then
             git config credential.helper store
-            echo "https://oauth2:${GITHUB_TOKEN}@github.com" > /home/.git-credentials
-            chmod 600 /home/.git-credentials
+            echo "https://oauth2:${GITHUB_TOKEN}@github.com" > /config/userdata/.git-credentials
+            chmod 600 /config/userdata/.git-credentials
         fi
 
         git pull || echo "Pull failed, continuing anyway..."
@@ -42,8 +42,8 @@ else
 
             # Configure credentials for future use
             git config --global credential.helper store
-            echo "https://oauth2:${GITHUB_TOKEN}@github.com" > /home/.git-credentials
-            chmod 600 /home/.git-credentials
+            echo "https://oauth2:${GITHUB_TOKEN}@github.com" > /config/userdata/.git-credentials
+            chmod 600 /config/userdata/.git-credentials
         else
             git clone "$GITHUB_REPO" "$WORKSPACE_DIR"
         fi

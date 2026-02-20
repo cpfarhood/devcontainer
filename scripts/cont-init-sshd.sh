@@ -5,7 +5,7 @@
 
 echo "=== SSH enabled: starting sshd ==="
 
-HOME_DIR="/home/user"
+HOME_DIR="/config/userdata"
 HOST_KEY_STORE="$HOME_DIR/.ssh/host_keys"
 
 # Persist host keys on the home PVC so clients don't see a "host key

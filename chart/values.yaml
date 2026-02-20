@@ -23,7 +23,7 @@ ssh: false
 # Happy Coder endpoints
 happyServerUrl: "https://happy.farh.net"
 happyWebappUrl: "https://happy-coder.farh.net"
-happyHomeDir: "/home/user/.happy"
+happyHomeDir: "/config/userdata/.happy"
 happyExperimental: "true"
 
 # VNC display
