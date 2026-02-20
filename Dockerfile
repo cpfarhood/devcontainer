@@ -58,9 +58,11 @@ RUN groupadd -g 1000 user && \
 RUN mkdir -p /workspace && \
     chown -R user:user /workspace
 
-# Copy startup script
+# Copy startup scripts
 COPY --chmod=755 scripts/startapp.sh /startapp.sh
 COPY --chmod=755 scripts/init-repo.sh /usr/local/bin/init-repo
+# Fix app user shell after baseimage-gui creates it at runtime
+COPY --chmod=755 scripts/cont-init-user.sh /etc/cont-init.d/20-fix-user-shell.sh
 
 # Set working directory
 WORKDIR /workspace
