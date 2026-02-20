@@ -59,9 +59,18 @@ These MUST be configured before deployment:
 - **Format:** `ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
 - **Scopes:** `repo`
 
+### Anthropic API Key
+- **Variable:** `ANTHROPIC_API_KEY`
+- **File:** Kubernetes Secret (referenced by `envSecretName`)
+- **Type:** String (Anthropic API key)
+- **Description:** API key for Claude Code / Happy Coder authentication. Browser-based OAuth login does not work inside the VNC session, so this key is **required** for Happy Coder to function.
+- **Required:** Yes (for Happy Coder / Claude Code)
+- **Format:** `sk-ant-api03-...`
+- **How to get:** https://console.anthropic.com/settings/keys
+
 ### VNC Password
 - **Variable:** `vnc-password`
-- **File:** Sealed Secret
+- **File:** Kubernetes Secret (referenced by `envSecretName`)
 - **Type:** String
 - **Description:** Password for VNC web interface
 - **Required:** Recommended for security
@@ -286,8 +295,9 @@ hostnames:
 ### With Secrets
 ```bash
 kubectl create secret generic antigravity-secrets \
-  --from-literal=github-token='CHANGE_ME' \
-  --from-literal=vnc-password='CHANGE_ME' \
+  --from-literal=GITHUB_TOKEN='CHANGE_ME' \
+  --from-literal=VNC_PASSWORD='CHANGE_ME' \
+  --from-literal=ANTHROPIC_API_KEY='sk-ant-api03-...' \
   --dry-run=client -o yaml | \
   kubeseal --format=yaml > k8s/sealedsecrets.yaml
 ```

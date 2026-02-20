@@ -38,6 +38,9 @@ resources:
     memory: "8Gi"
     cpu: "4000m"
 
-# Name of existing Secret containing env vars (GITHUB_TOKEN, VNC_PASSWORD, etc.)
-# Defaults to: devcontainer-{name}-secrets-env
+# Name of existing Secret containing env vars. Defaults to: devcontainer-{name}-secrets-env
+# Recognized keys:
+#   GITHUB_TOKEN      — PAT for private repo access
+#   VNC_PASSWORD      — password for the VNC web UI
+#   ANTHROPIC_API_KEY — required for Claude Code / Happy Coder auth (browser login won't work in VNC)
 envSecretName: ""

@@ -59,6 +59,13 @@ chown -R "$RUN_UID:$RUN_GID" "$WORKSPACE_DIR"
 mkdir -p "$HOME"
 chown "$RUN_UID:$RUN_GID" "$HOME"
 
+# Warn if ANTHROPIC_API_KEY is not set — browser-based Claude login won't work in VNC
+if [ -z "$ANTHROPIC_API_KEY" ]; then
+    echo "WARNING: ANTHROPIC_API_KEY is not set."
+    echo "  Claude Code cannot authenticate via browser inside this container."
+    echo "  Add ANTHROPIC_API_KEY to your Kubernetes secret to enable Happy Coder."
+fi
+
 # Start Happy Coder daemon
 echo "Starting Happy Coder..."
 cd "$WORKSPACE_DIR"
