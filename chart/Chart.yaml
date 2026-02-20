@@ -1,0 +1,6 @@
+apiVersion: v2
+name: antigravity
+description: Antigravity Dev Container with Happy Coder AI assistant
+type: application
+version: 0.1.0
+appVersion: "latest"

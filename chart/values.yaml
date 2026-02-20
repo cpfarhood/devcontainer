@@ -1,0 +1,43 @@
+# Instance name — used to generate resource names (devcontainer-{name}, userhome-{name})
+name: ""
+
+image:
+  repository: ghcr.io/cpfarhood/devcontainer
+  tag: latest
+  pullPolicy: Always
+
+# GitHub repository to clone into /workspace
+githubRepo: ""
+
+# Happy Coder endpoints
+happyServerUrl: "https://happy.farh.net"
+happyWebappUrl: "https://happy-coder.farh.net"
+happyHomeDir: "/home/user/.happy"
+happyExperimental: "true"
+
+# VNC display
+display:
+  width: "1920"
+  height: "1080"
+
+# Set to "0" when TLS is terminated at the gateway layer
+secureConnection: "0"
+
+userId: "1000"
+groupId: "1000"
+
+storage:
+  size: 32Gi
+  className: ceph-filesystem
+
+resources:
+  requests:
+    memory: "2Gi"
+    cpu: "1000m"
+  limits:
+    memory: "8Gi"
+    cpu: "4000m"
+
+# Name of existing Secret containing env vars (GITHUB_TOKEN, VNC_PASSWORD, etc.)
+# Defaults to: devcontainer-{name}-secrets-env
+envSecretName: ""

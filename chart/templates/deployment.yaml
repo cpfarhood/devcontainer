@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "antigravity.fullname" . }}
+  labels:
+    {{- include "antigravity.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "antigravity.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "antigravity.labels" . | nindent 8 }}
+    spec:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: "OnRootMismatch"
+      containers:
+        - name: devcontainer
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 5800
+              name: vnc-web
+              protocol: TCP
+          env:
+            - name: USER_ID
+              value: {{ .Values.userId | quote }}
+            - name: GROUP_ID
+              value: {{ .Values.groupId | quote }}
+            - name: DISPLAY_WIDTH
+              value: {{ .Values.display.width | quote }}
+            - name: DISPLAY_HEIGHT
+              value: {{ .Values.display.height | quote }}
+            - name: SECURE_CONNECTION
+              value: {{ .Values.secureConnection | quote }}
+            - name: HAPPY_HOME_DIR
+              value: {{ .Values.happyHomeDir | quote }}
+            - name: HAPPY_EXPERIMENTAL
+              value: {{ .Values.happyExperimental | quote }}
+            - name: HAPPY_SERVER_URL
+              value: {{ .Values.happyServerUrl | quote }}
+            - name: HAPPY_WEBAPP_URL
+              value: {{ .Values.happyWebappUrl | quote }}
+            - name: GITHUB_REPO
+              value: {{ .Values.githubRepo | quote }}
+          envFrom:
+            - secretRef:
+                name: {{ include "antigravity.envSecretName" . }}
+                optional: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: userhome
+              mountPath: /home
+            - name: workspace
+              mountPath: /workspace
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5800
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5800
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      volumes:
+        - name: workspace
+          emptyDir: {}
+        - name: userhome
+          persistentVolumeClaim:
+            claimName: {{ include "antigravity.pvcName" . }}

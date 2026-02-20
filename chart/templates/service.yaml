@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "antigravity.fullname" . }}
+  labels:
+    {{- include "antigravity.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: 5800
+      name: vnc-web
+      protocol: TCP
+      targetPort: vnc-web
+  selector:
+    {{- include "antigravity.labels" . | nindent 4 }}
