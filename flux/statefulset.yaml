@@ -1,0 +1,83 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: antigravity
+spec:
+  serviceName: "antigravity"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devcontainer
+  template:
+    metadata:
+      labels:
+        app: devcontainer
+    spec:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: "OnRootMismatch"
+      containers:
+        - name: antigravity
+          image: ghcr.io/cpfarhood/devcontainer:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5800
+              name: vnc-web
+              protocol: TCP
+          volumeMounts:
+            - name: userhome
+              mountPath: /home
+            - name: workspace
+              mountPath: /workspace
+          env:
+            # User/Group IDs for the claude user
+            - name: USER_ID
+              value: "1000"
+            - name: GROUP_ID
+              value: "1000"
+            # VNC display settings
+            - name: DISPLAY_WIDTH
+              value: "1920"
+            - name: DISPLAY_HEIGHT
+              value: "1080"
+            - name: SECURE_CONNECTION
+              value: "0"
+            - name: HAPPY_HOME_DIR
+              value: "/home/user/.happy"
+            - name: HAPPY_EXPERIMENTAL
+              value: "true"
+          envFrom:
+            - configMapRef: ${ENV_CONFIGMAP}
+            - secretRef: ${ENV_SECRETS}
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1000m"
+            limits:
+              memory: "8Gi"
+              cpu: "4000m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5800
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5800
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      volumes:
+        - name: workspace
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: userhome
+      spec:
+        accessModes: ["ReadWriteMany"]
+        storageClassName: "ceph-filesystem"
+        resources:
+          requests:
+            storage: 10Gi

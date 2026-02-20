@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: devcontainer
+  labels:
+    app: devcontainer
+spec:
+  ports:
+    - port: 5800
+      name: vnc-web
+      protocol: TCP
+  selector:
+    app: devcontainer
