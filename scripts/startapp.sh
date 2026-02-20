@@ -14,8 +14,21 @@ else
     WORKSPACE_DIR="/workspace/default"
 fi
 
-echo "Opening Antigravity in: $WORKSPACE_DIR"
+IDE="${IDE:-vscode}"
+echo "IDE mode: $IDE"
+echo "Workspace: $WORKSPACE_DIR"
 
-# Start Antigravity (VSCode) in the workspace directory as claude user
-# The baseimage-gui will handle the GUI display
-exec code --new-window --wait "$WORKSPACE_DIR"
+case "$IDE" in
+    antigravity)
+        echo "Opening Google Antigravity in: $WORKSPACE_DIR"
+        exec antigravity --new-window --wait "$WORKSPACE_DIR"
+        ;;
+    ssh)
+        echo "SSH mode: sshd started by cont-init. Keeping container alive."
+        exec sleep infinity
+        ;;
+    *)
+        echo "Opening VSCode in: $WORKSPACE_DIR"
+        exec code --new-window --wait "$WORKSPACE_DIR"
+        ;;
+esac

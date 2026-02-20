@@ -6,9 +6,16 @@ metadata:
     {{- include "antigravity.labels" . | nindent 4 }}
 spec:
   ports:
+    {{- if eq (.Values.ide | default "vscode") "ssh" }}
+    - port: 22
+      name: ssh
+      protocol: TCP
+      targetPort: ssh
+    {{- else }}
     - port: 5800
       name: vnc-web
       protocol: TCP
       targetPort: vnc-web
+    {{- end }}
   selector:
     {{- include "antigravity.labels" . | nindent 4 }}
