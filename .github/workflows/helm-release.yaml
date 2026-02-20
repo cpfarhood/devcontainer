@@ -34,4 +34,4 @@ jobs:
       - name: Push chart to GHCR
         run: |
           CHART_VERSION=$(helm show chart chart/ | grep '^version:' | awk '{print $2}')
-          helm push antigravity-${CHART_VERSION}.tgz oci://ghcr.io/cpfarhood/charts
+          helm push cpfarhood-${CHART_VERSION}.tgz oci://ghcr.io/cpfarhood/charts
