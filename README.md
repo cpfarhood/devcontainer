@@ -20,6 +20,7 @@ The secret is picked up automatically via `envFrom`. Keys recognised:
 | `GITHUB_TOKEN` | PAT for private repo access (`repo` scope) |
 | `VNC_PASSWORD` | Password for the VNC web UI |
 | `ANTHROPIC_API_KEY` | API key — alternative to browser-based Claude login |
+| `SSH_AUTHORIZED_KEYS` | Public key(s) for SSH access (required when `ssh: true`) |
 
 ```bash
 kubectl create secret generic devcontainer-mydev-secrets-env \
