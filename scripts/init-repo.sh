@@ -55,23 +55,17 @@ RUN_UID="${USER_ID:-1000}"
 RUN_GID="${GROUP_ID:-1000}"
 chown -R "$RUN_UID:$RUN_GID" "$WORKSPACE_DIR"
 
-# Start Happy Coder in background as the app user
+# Ensure home directory exists on the PVC (may be absent on a fresh volume)
+mkdir -p "$HOME"
+chown "$RUN_UID:$RUN_GID" "$HOME"
+
+# Start Happy Coder daemon
 echo "Starting Happy Coder..."
 cd "$WORKSPACE_DIR"
 
-# Create Happy Coder log file
-HAPPY_LOG="/tmp/happy-coder.log"
-touch "$HAPPY_LOG"
-chown "$RUN_UID:$RUN_GID" "$HAPPY_LOG"
+happy daemon start
 
-# Start Happy Coder (already running as the correct user via baseimage-gui)
-bash -c "cd '$WORKSPACE_DIR' && happy-coder > '$HAPPY_LOG' 2>&1 &"
-
-# Save PID for monitoring
-echo $! > /tmp/happy-coder.pid
-
-echo "Happy Coder started (PID: $(cat /tmp/happy-coder.pid))"
-echo "Logs available at: $HAPPY_LOG"
+echo "Happy Coder daemon started"
 
 # Export workspace directory for startapp.sh
 echo "$WORKSPACE_DIR" > /tmp/workspace-dir
