@@ -63,7 +63,7 @@ chown "$RUN_UID:$RUN_GID" "$HOME"
 echo "Starting Happy Coder..."
 cd "$WORKSPACE_DIR"
 
-happy daemon start
+happy daemon start || echo "Happy Coder daemon failed to start, continuing anyway..."
 
 echo "Happy Coder daemon started"
 
