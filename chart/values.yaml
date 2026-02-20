@@ -38,6 +38,15 @@ resources:
     memory: "8Gi"
     cpu: "4000m"
 
+# Kubernetes cluster access granted to the devcontainer pod via RBAC.
+# Options:
+#   none        — no cluster access (default)
+#   readonlyns  — get/list/watch all resources in the release namespace
+#   readwritens — full access to all resources in the release namespace
+#   readonly    — get/list/watch all resources cluster-wide
+#   readwrite   — full access to all resources cluster-wide
+clusterAccess: none
+
 # Name of existing Secret containing env vars (GITHUB_TOKEN, VNC_PASSWORD, etc.)
 # Defaults to: devcontainer-{name}-secrets-env
 envSecretName: ""

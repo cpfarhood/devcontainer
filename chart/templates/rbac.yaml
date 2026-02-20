@@ -1,0 +1,97 @@
+{{- $access := .Values.clusterAccess | default "none" }}
+{{- $name   := include "antigravity.fullname" . }}
+{{- $ns     := .Release.Namespace }}
+{{- $labels := include "antigravity.labels" . }}
+
+{{- if ne $access "none" }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $name }}
+  namespace: {{ $ns }}
+  labels:
+    {{- $labels | nindent 4 }}
+
+{{- if or (eq $access "readonlyns") (eq $access "readwritens") }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $name }}
+  namespace: {{ $ns }}
+  labels:
+    {{- $labels | nindent 4 }}
+rules:
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs:
+    {{- if eq $access "readonlyns" }}
+      - get
+      - list
+      - watch
+    {{- else }}
+      - "*"
+    {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $name }}
+  namespace: {{ $ns }}
+  labels:
+    {{- $labels | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name }}
+    namespace: {{ $ns }}
+roleRef:
+  kind: Role
+  name: {{ $name }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+
+{{- if or (eq $access "readonly") (eq $access "readwrite") }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- $labels | nindent 4 }}
+rules:
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs:
+    {{- if eq $access "readonly" }}
+      - get
+      - list
+      - watch
+    {{- else }}
+      - "*"
+    {{- end }}
+  - nonResourceURLs: ["*"]
+    verbs:
+    {{- if eq $access "readonly" }}
+      - get
+    {{- else }}
+      - "*"
+    {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- $labels | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name }}
+    namespace: {{ $ns }}
+roleRef:
+  kind: ClusterRole
+  name: {{ $name }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+
+{{- end }}

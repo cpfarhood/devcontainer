@@ -14,6 +14,9 @@ spec:
       labels:
         {{- include "antigravity.labels" . | nindent 8 }}
     spec:
+      {{- if ne (.Values.clusterAccess | default "none") "none" }}
+      serviceAccountName: {{ include "antigravity.fullname" . }}
+      {{- end }}
       securityContext:
         fsGroup: 1000
         fsGroupChangePolicy: "OnRootMismatch"
