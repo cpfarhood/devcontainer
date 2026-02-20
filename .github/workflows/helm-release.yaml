@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
@@ -18,9 +18,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
+
+      - name: Bump patch version
+        id: bump
+        run: |
+          CURRENT=$(grep '^version:' chart/Chart.yaml | awk '{print $2}')
+          MAJOR=$(echo $CURRENT | cut -d. -f1)
+          MINOR=$(echo $CURRENT | cut -d. -f2)
+          PATCH=$(echo $CURRENT | cut -d. -f3)
+          NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          sed -i "s/^version: .*/version: ${NEW_VERSION}/" chart/Chart.yaml
+          echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add chart/Chart.yaml
+          git commit -m "chore: bump chart version to ${{ steps.bump.outputs.version }} [skip ci]"
+          git push
 
       - name: Log in to GHCR
         run: |
@@ -33,5 +54,4 @@ jobs:
 
       - name: Push chart to GHCR
         run: |
-          CHART_VERSION=$(helm show chart chart/ | grep '^version:' | awk '{print $2}')
-          helm push devcontainer-${CHART_VERSION}.tgz oci://ghcr.io/cpfarhood/charts
+          helm push devcontainer-${{ steps.bump.outputs.version }}.tgz oci://ghcr.io/cpfarhood/charts
