@@ -25,12 +25,18 @@ RUN apt-get update && apt-get install -y \
     sudo \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Chrome
+# Install Chrome and xdg-utils (needed for xdg-open to work in VNC)
 RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome-keyring.gpg && \
     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
     apt-get update && \
-    apt-get install -y google-chrome-stable && \
+    apt-get install -y google-chrome-stable xdg-utils && \
     rm -rf /var/lib/apt/lists/*
+
+# Chrome wrapper: adds flags required for running inside a Docker container.
+# xdg-open (used by Claude Code on Linux) respects $BROWSER, so pointing it
+# here ensures the OAuth popup works without manual --no-sandbox invocations.
+RUN printf '#!/bin/bash\nexec /usr/bin/google-chrome-stable \\\n  --no-sandbox \\\n  --disable-dev-shm-usage \\\n  --disable-gpu \\\n  "$@"\n' > /usr/local/bin/google-chrome && \
+    chmod +x /usr/local/bin/google-chrome
 
 # Install Node.js (LTS version for Happy Coder)
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
@@ -69,7 +75,8 @@ WORKDIR /workspace
 
 # Configure container to run as user user
 ENV HOME=/home/user \
-    USER=user
+    USER=user \
+    BROWSER=/usr/local/bin/google-chrome
 
 # Expose VNC port (baseimage-gui default)
 EXPOSE 5800
