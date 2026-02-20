@@ -35,7 +35,16 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearm
 # Chrome wrapper: adds flags required for running inside a Docker container.
 # xdg-open (used by Claude Code on Linux) respects $BROWSER, so pointing it
 # here ensures the OAuth popup works without manual --no-sandbox invocations.
-RUN printf '#!/bin/bash\nexec /usr/bin/google-chrome-stable \\\n  --no-sandbox \\\n  --disable-dev-shm-usage \\\n  --disable-gpu \\\n  "$@"\n' > /usr/local/bin/google-chrome && \
+# Also explicitly sets user-data-dir to persist Chrome settings across restarts.
+RUN printf '#!/bin/bash\n\
+# Ensure Chrome data directory exists with proper permissions\n\
+mkdir -p "$HOME/.config/google-chrome"\n\
+exec /usr/bin/google-chrome-stable \\\n\
+  --no-sandbox \\\n\
+  --disable-dev-shm-usage \\\n\
+  --disable-gpu \\\n\
+  --user-data-dir="$HOME/.config/google-chrome" \\\n\
+  "$@"\n' > /usr/local/bin/google-chrome && \
     chmod +x /usr/local/bin/google-chrome
 
 # Install Node.js (LTS version for Happy Coder)
@@ -87,6 +96,8 @@ COPY --chmod=755 scripts/startapp.sh /startapp.sh
 COPY --chmod=755 scripts/init-repo.sh /usr/local/bin/init-repo
 # Fix app user shell after baseimage-gui creates it at runtime
 COPY --chmod=755 scripts/cont-init-user.sh /etc/cont-init.d/20-fix-user-shell.sh
+# Initialize persistent home directory structure
+COPY --chmod=755 scripts/cont-init-home.sh /etc/cont-init.d/21-init-home.sh
 COPY --chmod=755 scripts/cont-init-sshd.sh /etc/cont-init.d/25-start-sshd.sh
 
 # Set working directory
