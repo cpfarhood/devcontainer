@@ -1,0 +1,72 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":gitSignOff"
+  ],
+  "semanticCommits": "enabled",
+  "dependencyDashboard": true,
+  "suppressNotifications": [
+    "prEditedNotification"
+  ],
+  "rebaseWhen": "conflicted",
+  "commitMessagePrefix": "chore(deps):",
+  "commitMessageAction": "update",
+  "commitMessageTopic": "{{depName}}",
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "schedule": [
+    "before 6am on monday"
+  ],
+  "packageRules": [
+    {
+      "description": "GitHub Actions",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "github-actions",
+      "additionalBranchPrefix": "github-actions-",
+      "semanticCommitScope": "github-actions",
+      "pinDigests": true
+    },
+    {
+      "description": "Docker base image",
+      "matchManagers": [
+        "dockerfile"
+      ],
+      "groupName": "docker",
+      "additionalBranchPrefix": "docker-",
+      "semanticCommitScope": "docker"
+    },
+    {
+      "description": "Automerge patch updates",
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Automerge minor updates for stable packages",
+      "matchUpdateTypes": [
+        "minor"
+      ],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Separate major updates - require manual review",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "automerge": false,
+      "additionalBranchPrefix": "major-"
+    }
+  ],
+  "ignorePaths": [
+    "**/node_modules/**"
+  ]
+}
