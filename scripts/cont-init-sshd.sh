@@ -1,9 +1,9 @@
 #!/bin/sh
-# Start OpenSSH server for SSH IDE mode.
+# Start OpenSSH server when SSH=true.
 # Runs as root during container initialisation (cont-init.d).
-[ "${IDE:-vscode}" = "ssh" ] || exit 0
+[ "${SSH:-false}" = "true" ] || exit 0
 
-echo "=== SSH IDE mode: starting sshd ==="
+echo "=== SSH enabled: starting sshd ==="
 
 # Generate host keys if missing (first boot or ephemeral /etc/ssh)
 ssh-keygen -A 2>/dev/null || true

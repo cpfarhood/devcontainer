@@ -23,8 +23,8 @@ case "$IDE" in
         echo "Opening Google Antigravity in: $WORKSPACE_DIR"
         exec antigravity --new-window --wait "$WORKSPACE_DIR"
         ;;
-    ssh)
-        echo "SSH mode: sshd started by cont-init. Keeping container alive."
+    none)
+        echo "IDE=none: no IDE launched, keeping container alive."
         exec sleep infinity
         ;;
     *)

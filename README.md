@@ -75,19 +75,34 @@ A Chrome browser window will open inside VNC for the Claude Max OAuth login. Cre
 |-------|---------|-------------|
 | `name` | `""` | Instance name — used in all resource names (`devcontainer-{name}`) |
 | `githubRepo` | `""` | Repository to clone into `/workspace` on startup |
-| `ide` | `vscode` | IDE to launch — `vscode`, `antigravity`, or `ssh` (see below) |
+| `ide` | `vscode` | IDE to launch — `vscode`, `antigravity`, or `none` (see below) |
+| `ssh` | `false` | Also start an OpenSSH server on port 22 (additive, any `ide`) |
 | `image.repository` | `ghcr.io/cpfarhood/devcontainer` | Container image |
 | `image.tag` | `latest` | Image tag |
 
 ### IDE choice
 
+`ide` controls what GUI is launched in the VNC session:
+
 | Value | Port | Description |
 |-------|------|-------------|
 | `vscode` (default) | 5800 (VNC) | VSCode desktop via browser-based VNC |
 | `antigravity` | 5800 (VNC) | Google Antigravity (VSCode fork with AI) via VNC |
-| `ssh` | 22 (SSH) | OpenSSH server — no VNC GUI, connect via SSH |
+| `none` | — | No IDE; container stays alive (useful when `ssh: true`) |
 
-For `ssh` mode, add your public key to the env secret:
+### SSH access
+
+`ssh: true` starts OpenSSH on port 22 **in addition to** the IDE. It works with any `ide` value:
+
+```bash
+# SSH-only (no VNC)
+helm install mydev ./chart --set name=mydev --set ide=none --set ssh=true
+
+# VSCode in VNC + SSH access at the same time
+helm install mydev ./chart --set name=mydev --set ssh=true
+```
+
+Add your public key to the env secret:
 
 ```bash
 kubectl create secret generic devcontainer-mydev-secrets-env \
@@ -95,7 +110,7 @@ kubectl create secret generic devcontainer-mydev-secrets-env \
   --from-literal=SSH_AUTHORIZED_KEYS='ssh-ed25519 AAAA...'
 ```
 
-Then connect with:
+Then connect:
 
 ```bash
 kubectl port-forward deployment/devcontainer-mydev 2222:22
@@ -159,7 +174,7 @@ With any non-`none` value, a `ServiceAccount` named `devcontainer-{name}` is cre
 ```
 Container start
   → cont-init.d/20-fix-user-shell.sh   — fix shell/home on baseimage-gui app user
-  → cont-init.d/25-start-sshd.sh       — start sshd if IDE=ssh
+  → cont-init.d/25-start-sshd.sh       — start sshd if SSH=true
   → /startapp.sh  (runs as app user, UID 1000)
       → init-repo.sh
           → clone / pull GITHUB_REPO into /workspace/{repo}
@@ -167,7 +182,8 @@ Container start
           → happy daemon start           — starts Happy Coder background daemon
       → IDE=vscode:      code --new-window --wait /workspace/{repo}
         IDE=antigravity:  antigravity --new-window --wait /workspace/{repo}
-        IDE=ssh:          sleep infinity  (sshd already running as root)
+        IDE=none:         sleep infinity
+      (SSH=true: sshd also running as root on port 22)
 ```
 
 ### Storage

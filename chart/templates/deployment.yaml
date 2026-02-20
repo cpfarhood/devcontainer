@@ -25,18 +25,21 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            {{- if eq (.Values.ide | default "vscode") "ssh" }}
-            - containerPort: 22
-              name: ssh
-              protocol: TCP
-            {{- else }}
+            {{- if ne (.Values.ide | default "vscode") "none" }}
             - containerPort: 5800
               name: vnc-web
+              protocol: TCP
+            {{- end }}
+            {{- if .Values.ssh }}
+            - containerPort: 22
+              name: ssh
               protocol: TCP
             {{- end }}
           env:
             - name: IDE
               value: {{ .Values.ide | default "vscode" | quote }}
+            - name: SSH
+              value: {{ .Values.ssh | toString | quote }}
             - name: USER_ID
               value: {{ .Values.userId | quote }}
             - name: GROUP_ID
@@ -68,7 +71,7 @@ spec:
               mountPath: /home
             - name: workspace
               mountPath: /workspace
-          {{- if ne (.Values.ide | default "vscode") "ssh" }}
+          {{- if ne (.Values.ide | default "vscode") "none" }}
           livenessProbe:
             httpGet:
               path: /
@@ -81,7 +84,7 @@ spec:
               port: 5800
             initialDelaySeconds: 10
             periodSeconds: 5
-          {{- else }}
+          {{- else if .Values.ssh }}
           livenessProbe:
             tcpSocket:
               port: 22

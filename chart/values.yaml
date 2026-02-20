@@ -13,9 +13,12 @@ githubRepo: ""
 # Options:
 #   vscode      — VSCode via VNC browser UI on port 5800 (default)
 #   antigravity — Google Antigravity (VSCode fork) via VNC on port 5800
-#   ssh         — OpenSSH server on port 22 (no VNC GUI)
-#                 Requires SSH_AUTHORIZED_KEYS in the env secret.
+#   none        — no IDE; useful when ssh: true is the sole access method
 ide: vscode
+
+# Start an OpenSSH server on port 22 in addition to the IDE.
+# Set SSH_AUTHORIZED_KEYS in the env secret to allow key-based login.
+ssh: false
 
 # Happy Coder endpoints
 happyServerUrl: "https://happy.farh.net"
