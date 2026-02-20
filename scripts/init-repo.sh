@@ -63,6 +63,10 @@ chown "$RUN_UID:$RUN_GID" "$HOME"
 # so no sudo needed — Happy/Claude Code will find credentials in the correct home dir.
 echo "Starting Happy Coder..."
 
+# Remove stale lock file left by a previously crashed daemon — without this,
+# happy daemon start refuses to start and exits with "Failed to start daemon".
+rm -f "${HAPPY_HOME_DIR:-$HOME/.happy}/daemon.state.json.lock"
+
 cd "$WORKSPACE_DIR"
 happy daemon start || echo "Happy Coder daemon failed to start, continuing anyway..."
 
