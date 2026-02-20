@@ -71,6 +71,8 @@ spec:
               mountPath: /home
             - name: workspace
               mountPath: /workspace
+            - name: shm
+              mountPath: /dev/shm
           {{- if ne (.Values.ide | default "vscode") "none" }}
           livenessProbe:
             httpGet:
@@ -99,6 +101,10 @@ spec:
       volumes:
         - name: workspace
           emptyDir: {}
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: {{ .Values.shm.sizeLimit }}
         - name: userhome
           persistentVolumeClaim:
             claimName: {{ include "antigravity.pvcName" . }}
