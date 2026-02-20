@@ -35,7 +35,25 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearm
 # Chrome wrapper: adds flags required for running inside a Docker container.
 # xdg-open (used by Claude Code on Linux) respects $BROWSER, so pointing it
 # here ensures the OAuth popup works without manual --no-sandbox invocations.
-RUN printf '#!/bin/bash\nexec /usr/bin/google-chrome-stable \\\n  --no-sandbox \\\n  --disable-dev-shm-usage \\\n  --disable-gpu \\\n  "$@"\n' > /usr/local/bin/google-chrome && \
+# Cleans up crash lock files and suppresses the crash-restore bubble so that
+# sessions/cookies survive unclean pod shutdowns (SIGKILL).
+RUN printf '#!/bin/bash\n\
+CHROME_DIR="/config/userdata/.config/google-chrome"\n\
+mkdir -p "$CHROME_DIR"\n\
+# Remove stale lock files left by unclean container shutdown\n\
+rm -f "$CHROME_DIR/SingletonLock" "$CHROME_DIR/SingletonSocket" "$CHROME_DIR/SingletonCookie"\n\
+# Mark the previous session as clean so Chrome does not clear cookies\n\
+PREFS="$CHROME_DIR/Default/Preferences"\n\
+if [ -f "$PREFS" ]; then\n\
+  sed -i '\''s/"exit_type":"Crashed"/"exit_type":"Normal"/g; s/"exited_cleanly":false/"exited_cleanly":true/g'\'' "$PREFS"\n\
+fi\n\
+exec /usr/bin/google-chrome-stable \\\n\
+  --no-sandbox \\\n\
+  --disable-dev-shm-usage \\\n\
+  --disable-gpu \\\n\
+  --disable-session-crashed-bubble \\\n\
+  --user-data-dir="$CHROME_DIR" \\\n\
+  "$@"\n' > /usr/local/bin/google-chrome && \
     chmod +x /usr/local/bin/google-chrome
 
 # Install Node.js (LTS version for Happy Coder)
@@ -93,7 +111,7 @@ COPY --chmod=755 scripts/cont-init-sshd.sh /etc/cont-init.d/25-start-sshd.sh
 WORKDIR /workspace
 
 # Configure container to run as user user
-ENV HOME=/home/user \
+ENV HOME=/config/userdata \
     USER=user \
     BROWSER=/usr/local/bin/google-chrome
 
