@@ -1,5 +1,12 @@
 {
   "mcpServers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_TOKEN}"
+      }
+    },
     "kubernetes": {
       "type": "sse",
       "url": "http://localhost:8080/sse"
@@ -8,18 +15,14 @@
       "type": "sse",
       "url": "http://localhost:8081/sse"
     },
-    "homeassistant": {
-      "type": "sse",
-      "url": "http://localhost:8087/sse"
-    },
-    "github": {
-      "type": "sse",
-      "url": "http://localhost:8088/sse"
-    },
     "playwright": {
       "type": "sse",
       "url": "http://playwright-mcp.playwright.svc.cluster.local:3000/sse"
-    } 
+    },
+    "pgtuner": {
+      "type": "sse",
+      "url": "http://localhost:8085/sse"
+    }
   }
 }
 

@@ -232,6 +232,40 @@ spec:
           resources:
             {{- toYaml .Values.mcpSidecars.github.resources | nindent 12 }}
         {{- end }}
+        {{- if .Values.mcpSidecars.pgtuner.enabled }}
+        - name: pgtuner-mcp
+          image: "{{ .Values.mcpSidecars.pgtuner.image.repository }}:{{ .Values.mcpSidecars.pgtuner.image.tag }}"
+          imagePullPolicy: Always
+          command: ["python", "-m", "pgtuner_mcp", "--transport", "sse", "--port", "{{ .Values.mcpSidecars.pgtuner.port }}"]
+          ports:
+            - name: pgtuner
+              containerPort: {{ .Values.mcpSidecars.pgtuner.port }}
+          env:
+            - name: DATABASE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "antigravity.envSecretName" . }}
+                  key: database-uri
+                  optional: true
+            - name: PGTUNER_EXCLUDE_USERIDS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "antigravity.envSecretName" . }}
+                  key: pgtuner-exclude-userids
+                  optional: true
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.mcpSidecars.pgtuner.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.mcpSidecars.pgtuner.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.mcpSidecars.pgtuner.resources | nindent 12 }}
+        {{- end }}
       volumes:
         - name: workspace
           emptyDir: {}

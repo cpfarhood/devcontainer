@@ -121,3 +121,16 @@ mcpSidecars:
       limits:
         memory: "256Mi"
         cpu: "500m"
+  pgtuner:
+    enabled: false  # Disabled by default, requires DATABASE_URI in secrets
+    image:
+      repository: dog830228/pgtuner_mcp
+      tag: latest  # TODO: pin to specific version once stable release available
+    port: 8085
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
