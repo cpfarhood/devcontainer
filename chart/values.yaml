@@ -109,7 +109,7 @@ mcpSidecars:
         memory: "256Mi"
         cpu: "500m"
   github:
-    enabled: true  # Enabled by default, uses GITHUB_TOKEN from env
+    enabled: false  # DISABLED: GitHub MCP server has been archived, image doesn't exist
     image:
       repository: ghcr.io/modelcontextprotocol/servers/github
       tag: latest  # Update to specific version once available
