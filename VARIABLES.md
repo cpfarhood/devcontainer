@@ -175,6 +175,8 @@ Complete reference for all configurable values in the Antigravity Dev Container 
   - `VNC_PASSWORD` — Password for VNC web UI
   - `ANTHROPIC_API_KEY` — API key for Claude
   - `SSH_AUTHORIZED_KEYS` — Public keys for SSH access
+  - `homeassistant-url` — Home Assistant base URL (e.g., http://homeassistant.local:8123)
+  - `homeassistant-token` — Home Assistant long-lived access token
 
 ## MCP Sidecars
 
@@ -244,6 +246,41 @@ Complete reference for all configurable values in the Antigravity Dev Container 
   ```
 - **Description:** Resource limits for Flux MCP sidecar
 
+### mcpSidecars.homeassistant.enabled
+- **Type:** Boolean
+- **Default:** `false`
+- **Description:** Enable Home Assistant MCP server sidecar
+- **Note:** Requires `homeassistant-url` and `homeassistant-token` in env secret
+
+### mcpSidecars.homeassistant.image.repository
+- **Type:** String
+- **Default:** `ghcr.io/homeassistant-ai/ha-mcp`
+- **Description:** Home Assistant MCP server image
+
+### mcpSidecars.homeassistant.image.tag
+- **Type:** String
+- **Default:** `stable`
+- **Description:** Home Assistant MCP server image tag
+- **Options:** `stable` (recommended), `latest` (dev builds), `v{version}` (specific version)
+
+### mcpSidecars.homeassistant.port
+- **Type:** Integer
+- **Default:** `8087`
+- **Description:** Port for Home Assistant MCP server (SSE mode)
+
+### mcpSidecars.homeassistant.resources
+- **Type:** Object
+- **Default:**
+  ```yaml
+  requests:
+    memory: "64Mi"
+    cpu: "50m"
+  limits:
+    memory: "256Mi"
+    cpu: "500m"
+  ```
+- **Description:** Resource limits for Home Assistant MCP sidecar
+
 ## Usage Examples
 
 ### Minimal Configuration
@@ -304,6 +341,30 @@ clusterAccess: readonly
 
 happyServerUrl: https://happy.internal.company.com
 happyWebappUrl: https://happy-app.internal.company.com
+```
+
+### Smart Home Development Configuration
+
+```yaml
+name: smarthome-dev
+githubRepo: https://github.com/user/home-automation
+ide: vscode
+
+clusterAccess: readwritens
+
+mcpSidecars:
+  kubernetes:
+    enabled: true
+  flux:
+    enabled: false
+  homeassistant:
+    enabled: true
+    image:
+      tag: stable
+
+# Requires secrets:
+# homeassistant-url: http://homeassistant.local:8123
+# homeassistant-token: <long-lived-access-token>
 ```
 
 ## Helm CLI Examples

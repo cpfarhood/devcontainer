@@ -98,7 +98,7 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 5
           {{- end }}
-        {{- if .Values.mcpSidecars.kubernetes.enabled }}
+        {{- if and .Values.mcpSidecars.kubernetes.enabled (ne .Values.clusterAccess "none") }}
         - name: kubernetes-mcp
           image: "{{ .Values.mcpSidecars.kubernetes.image.repository }}:{{ .Values.mcpSidecars.kubernetes.image.tag }}"
           args:
@@ -123,7 +123,7 @@ spec:
           resources:
             {{- toYaml .Values.mcpSidecars.kubernetes.resources | nindent 12 }}
         {{- end }}
-        {{- if .Values.mcpSidecars.flux.enabled }}
+        {{- if and .Values.mcpSidecars.flux.enabled (ne .Values.clusterAccess "none") }}
         - name: flux-mcp
           image: "{{ .Values.mcpSidecars.flux.image.repository }}:{{ .Values.mcpSidecars.flux.image.tag }}"
           args:
@@ -146,6 +146,40 @@ spec:
             periodSeconds: 5
           resources:
             {{- toYaml .Values.mcpSidecars.flux.resources | nindent 12 }}
+        {{- end }}
+        {{- if .Values.mcpSidecars.homeassistant.enabled }}
+        - name: homeassistant-mcp
+          image: "{{ .Values.mcpSidecars.homeassistant.image.repository }}:{{ .Values.mcpSidecars.homeassistant.image.tag }}"
+          imagePullPolicy: Always
+          command: ["fastmcp", "run", "fastmcp-sse.json"]
+          ports:
+            - name: homeassistant
+              containerPort: {{ .Values.mcpSidecars.homeassistant.port }}
+          env:
+            - name: HOMEASSISTANT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "antigravity.envSecretName" . }}
+                  key: homeassistant-url
+                  optional: true
+            - name: HOMEASSISTANT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "antigravity.envSecretName" . }}
+                  key: homeassistant-token
+                  optional: true
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.mcpSidecars.homeassistant.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.mcpSidecars.homeassistant.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.mcpSidecars.homeassistant.resources | nindent 12 }}
         {{- end }}
       volumes:
         - name: workspace

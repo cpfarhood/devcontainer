@@ -95,3 +95,16 @@ mcpSidecars:
       limits:
         memory: "256Mi"
         cpu: "500m"
+  homeassistant:
+    enabled: false  # Disabled by default, requires HOMEASSISTANT_URL and HOMEASSISTANT_TOKEN
+    image:
+      repository: ghcr.io/homeassistant-ai/ha-mcp
+      tag: stable
+    port: 8087
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"

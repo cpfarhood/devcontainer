@@ -79,25 +79,32 @@ Container start
 
 ### MCP Sidecars
 
-Kubernetes and Flux MCP servers run as sidecar containers in the pod, inheriting its ServiceAccount RBAC permissions:
+MCP (Model Context Protocol) servers run as sidecar containers in the pod, enabling AI assistants to interact with various services:
 
-| Sidecar | Image | Port | Endpoint |
-|---------|-------|------|----------|
-| `kubernetes-mcp` | `quay.io/containers/kubernetes_mcp_server` | 8080 | `http://localhost:8080/sse` |
-| `flux-mcp` | `ghcr.io/controlplaneio-fluxcd/flux-operator-mcp` | 8081 | `http://localhost:8081/sse` |
+| Sidecar | Image | Port | Endpoint | Default |
+|---------|-------|------|----------|---------|
+| `kubernetes-mcp` | `quay.io/containers/kubernetes_mcp_server` | 8080 | `http://localhost:8080/sse` | Enabled |
+| `flux-mcp` | `ghcr.io/controlplaneio-fluxcd/flux-operator-mcp` | 8081 | `http://localhost:8081/sse` | Enabled |
+| `homeassistant-mcp` | `ghcr.io/homeassistant-ai/ha-mcp` | 8087 | `http://localhost:8087/sse` | Disabled |
 
-Both are enabled by default and configurable via `mcpSidecars` in `values.yaml`. Playwright MCP remains an external service.
+**Note:**
+- Kubernetes and Flux sidecars require `clusterAccess` != `none` to be deployed (they need RBAC permissions)
+- Kubernetes and Flux sidecars inherit the pod's ServiceAccount RBAC permissions
+- Home Assistant sidecar requires `HOMEASSISTANT_URL` and `HOMEASSISTANT_TOKEN` in the env secret
+- Playwright MCP remains an external service
 
 #### Enabling/Disabling MCP Servers
 
 To control MCP sidecars, set the `enabled` flag in your values override:
 
 ```yaml
-# Disable both MCP sidecars
+# Disable all MCP sidecars
 mcpSidecars:
   kubernetes:
     enabled: false
   flux:
+    enabled: false
+  homeassistant:
     enabled: false
 
 # Or selectively enable/disable
@@ -106,6 +113,8 @@ mcpSidecars:
     enabled: true  # Keep Kubernetes MCP enabled
   flux:
     enabled: false # Disable Flux MCP
+  homeassistant:
+    enabled: true  # Enable Home Assistant MCP (requires secrets)
 ```
 
 When deploying via Helm:

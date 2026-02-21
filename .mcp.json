@@ -8,6 +8,10 @@
       "type": "sse",
       "url": "http://localhost:8081/sse"
     },
+    "homeassistant": {
+      "type": "sse",
+      "url": "http://localhost:8087/sse"
+    },
     "playwright": {
       "type": "sse",
       "url": "http://playwright-mcp.playwright.svc.cluster.local:3000/sse"

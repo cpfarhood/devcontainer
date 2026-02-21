@@ -124,7 +124,11 @@ ssh -p 2222 user@localhost
 
 ### MCP Sidecar Configuration
 
-Control MCP servers for AI-assisted operations:
+Control MCP servers for AI-assisted operations.
+
+**Important:** Kubernetes and Flux MCP sidecars are only deployed when:
+1. They are enabled in values (`mcpSidecars.<name>.enabled: true`)
+2. AND `clusterAccess` is not `none` (they need RBAC permissions to function)
 
 ```bash
 # Disable all MCP sidecars
@@ -132,7 +136,8 @@ helm install mydev ./chart \
   --set name=mydev \
   --set githubRepo=https://github.com/youruser/yourrepo \
   --set mcpSidecars.kubernetes.enabled=false \
-  --set mcpSidecars.flux.enabled=false
+  --set mcpSidecars.flux.enabled=false \
+  --set mcpSidecars.homeassistant.enabled=false
 
 # Enable only Kubernetes MCP
 helm install mydev ./chart \
@@ -140,6 +145,16 @@ helm install mydev ./chart \
   --set githubRepo=https://github.com/youruser/yourrepo \
   --set mcpSidecars.kubernetes.enabled=true \
   --set mcpSidecars.flux.enabled=false
+
+# Enable Home Assistant MCP (requires credentials)
+kubectl create secret generic devcontainer-mydev-secrets-env \
+  --from-literal=homeassistant-url='http://homeassistant.local:8123' \
+  --from-literal=homeassistant-token='your_long_lived_token'
+
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set mcpSidecars.homeassistant.enabled=true
 ```
 
 ### Cluster Access Levels
@@ -340,9 +355,15 @@ kubectl get pod -l app.kubernetes.io/instance=mydev -o jsonpath='{.items[0].spec
 # Check MCP container logs
 kubectl logs deployment/devcontainer-mydev -c kubernetes-mcp
 kubectl logs deployment/devcontainer-mydev -c flux-mcp
+kubectl logs deployment/devcontainer-mydev -c homeassistant-mcp
 
-# Verify RBAC permissions
+# Verify RBAC permissions (for Kubernetes/Flux MCP)
 kubectl auth can-i --list --as system:serviceaccount:default:devcontainer-mydev
+
+# Check Home Assistant MCP credentials
+kubectl get secret devcontainer-mydev-secrets-env -o jsonpath='{.data.homeassistant-url}' | base64 -d
+# Verify the URL is accessible from the pod
+kubectl exec deployment/devcontainer-mydev -- curl -s http://homeassistant.local:8123/api/
 ```
 
 ### Storage Issues

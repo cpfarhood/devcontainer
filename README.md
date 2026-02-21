@@ -22,6 +22,8 @@ The secret is picked up automatically via `envFrom`. Keys recognised:
 | `VNC_PASSWORD` | Password for the VNC web UI |
 | `ANTHROPIC_API_KEY` | API key — alternative to browser-based Claude login |
 | `SSH_AUTHORIZED_KEYS` | Public key(s) for SSH access (required when `ssh: true`) |
+| `homeassistant-url` | Home Assistant URL (required when `mcpSidecars.homeassistant.enabled: true`) |
+| `homeassistant-token` | Home Assistant long-lived access token (required when `mcpSidecars.homeassistant.enabled: true`) |
 
 ```bash
 kubectl create secret generic devcontainer-mydev-secrets-env \
@@ -152,14 +154,18 @@ With any non-`none` value, a `ServiceAccount` named `devcontainer-{name}` is cre
 
 ### MCP Sidecars
 
-The devcontainer includes MCP (Model Context Protocol) servers as sidecar containers that enable AI assistants to interact with Kubernetes and Flux:
+The devcontainer includes MCP (Model Context Protocol) servers as sidecar containers that enable AI assistants to interact with various services:
 
 | Sidecar | Default | Purpose |
 |---------|---------|---------|
 | `mcpSidecars.kubernetes.enabled` | `true` | Kubernetes API access via MCP |
 | `mcpSidecars.flux.enabled` | `true` | Flux GitOps operations via MCP |
+| `mcpSidecars.homeassistant.enabled` | `false` | Home Assistant smart home control via MCP |
 
-These sidecars inherit the pod's ServiceAccount RBAC permissions (controlled by `clusterAccess`).
+**Notes:**
+- Kubernetes and Flux sidecars require `clusterAccess` != `none` to be deployed (automatically disabled when no cluster access)
+- Kubernetes and Flux sidecars inherit the pod's ServiceAccount RBAC permissions (controlled by `clusterAccess`)
+- Home Assistant sidecar requires additional configuration (see below)
 
 **Disable MCP sidecars:**
 ```bash
@@ -175,6 +181,21 @@ helm install mydev ./chart \
   --set name=mydev \
   --set githubRepo=https://github.com/youruser/yourrepo \
   --set mcpSidecars.flux.enabled=false  # Disable only Flux MCP
+```
+
+**Enable Home Assistant MCP:**
+```bash
+# Create secret with Home Assistant credentials
+kubectl create secret generic devcontainer-mydev-secrets-env \
+  --from-literal=GITHUB_TOKEN='ghp_...' \
+  --from-literal=homeassistant-url='http://homeassistant.local:8123' \
+  --from-literal=homeassistant-token='your_long_lived_access_token'
+
+# Deploy with Home Assistant MCP enabled
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set mcpSidecars.homeassistant.enabled=true
 ```
 
 **Custom MCP configuration:**
@@ -196,6 +217,19 @@ mcpSidecars:
         cpu: "500m"
   flux:
     enabled: false  # Disabled in this example
+  homeassistant:
+    enabled: true
+    image:
+      repository: ghcr.io/homeassistant-ai/ha-mcp
+      tag: stable  # or 'latest' for dev builds
+    port: 8087
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
 ```
 
 ### Display and resources
