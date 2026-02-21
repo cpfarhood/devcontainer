@@ -33,12 +33,14 @@ make clean   # Remove volumes
 ### Kubernetes Deployment
 
 ```bash
-make k8s-deploy          # Deploy via kustomize
-kubectl apply -k k8s/    # Direct kustomize apply
-make k8s-delete          # Tear down
-make k8s-port-forward    # Forward port 5800 to localhost
-make k8s-logs            # Stream container logs
-make k8s-shell           # Open interactive shell in pod
+GITHUB_REPO="https://github.com/user/repo" make helm-deploy  # Deploy with Helm
+make helm-delete          # Tear down Helm release
+make helm-port-forward    # Forward port 5800 to localhost
+make helm-logs            # Stream container logs
+make helm-shell           # Open interactive shell in pod
+
+# Or use Helm directly
+helm install mydev ./chart --set name=mydev --set githubRepo=https://github.com/user/repo
 ```
 
 ### Other Useful Targets
@@ -85,6 +87,35 @@ Kubernetes and Flux MCP servers run as sidecar containers in the pod, inheriting
 | `flux-mcp` | `ghcr.io/controlplaneio-fluxcd/flux-operator-mcp` | 8081 | `http://localhost:8081/sse` |
 
 Both are enabled by default and configurable via `mcpSidecars` in `values.yaml`. Playwright MCP remains an external service.
+
+#### Enabling/Disabling MCP Servers
+
+To control MCP sidecars, set the `enabled` flag in your values override:
+
+```yaml
+# Disable both MCP sidecars
+mcpSidecars:
+  kubernetes:
+    enabled: false
+  flux:
+    enabled: false
+
+# Or selectively enable/disable
+mcpSidecars:
+  kubernetes:
+    enabled: true  # Keep Kubernetes MCP enabled
+  flux:
+    enabled: false # Disable Flux MCP
+```
+
+When deploying via Helm:
+```bash
+# Using --set flag
+helm install my-devcontainer ./chart --set mcpSidecars.kubernetes.enabled=false --set mcpSidecars.flux.enabled=false
+
+# Or with a values file
+helm install my-devcontainer ./chart -f custom-values.yaml
+```
 
 ### Storage Model
 

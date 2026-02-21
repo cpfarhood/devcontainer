@@ -1,305 +1,383 @@
-# Configuration Variables Reference
+# Helm Chart Values Reference
 
-Quick reference for all configurable variables in this project.
+Complete reference for all configurable values in the Antigravity Dev Container Helm chart.
 
-## Required Variables
+## Core Configuration
 
-These MUST be configured before deployment:
-
-### Storage Class Name
-- **Variable:** `storageClassName`
-- **File:** `k8s/statefulset.yaml`
-- **Line:** ~117
+### name
 - **Type:** String
-- **Description:** ReadWriteMany storage class available in your cluster
-- **Example:** `ceph-filesystem`, `nfs-client`, `efs-sc`
-- **How to find:** `kubectl get storageclass`
-
-### GitHub Repository URL
-- **Variable:** `github-repo`
-- **File:** `k8s/configmap.yaml`
-- **Line:** ~9
-- **Type:** String (URL)
-- **Description:** Repository to clone on container startup
-- **Format:** `https://github.com/username/repository`
-- **Example:** `https://github.com/cpfarhood/my-project`
-
-### Gateway Name
-- **Variable:** `parentRefs[0].name`
-- **File:** `k8s/httproute.yaml`
-- **Line:** ~8
-- **Type:** String
-- **Description:** Name of your Gateway resource
-- **How to find:** `kubectl get gateway -A`
-
-### Gateway Namespace
-- **Variable:** `parentRefs[0].namespace`
-- **File:** `k8s/httproute.yaml`
-- **Line:** ~9
-- **Type:** String
-- **Description:** Namespace where Gateway is deployed
-- **How to find:** `kubectl get gateway -A`
-
-### Domain Hostname
-- **Variable:** `hostnames[0]`
-- **File:** `k8s/httproute.yaml`
-- **Line:** ~11
-- **Type:** String (FQDN)
-- **Description:** Domain name for accessing the container
-- **Example:** `devcontainer.example.com`
-
-## Optional Variables
-
-### GitHub Token
-- **Variable:** `github-token`
-- **File:** Sealed Secret
-- **Type:** String (GitHub PAT)
-- **Description:** Personal Access Token for private repos
-- **Required:** Only for private repositories
-- **Format:** `ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
-- **Scopes:** `repo`
-
-### VNC Password
-- **Variable:** `vnc-password`
-- **File:** Sealed Secret
-- **Type:** String
-- **Description:** Password for VNC web interface
-- **Required:** Recommended for security
-- **Format:** Any string (12+ characters recommended)
-
-### Namespace
-- **Variable:** `namespace`
-- **File:** `k8s/kustomization.yaml`
-- **Line:** ~5
-- **Type:** String
-- **Description:** Kubernetes namespace for deployment
-- **Default:** `default`
-
-### Container Image
-- **Variable:** `image`
-- **File:** `k8s/statefulset.yaml`
-- **Line:** ~32
-- **Type:** String (image reference)
-- **Description:** Docker image to deploy
-- **Default:** `ghcr.io/cpfarhood/devcontainer:latest`
-- **Format:** `registry/repository:tag`
-
-### Memory Request
-- **Variable:** `resources.requests.memory`
-- **File:** `k8s/statefulset.yaml`
-- **Line:** ~99
-- **Type:** String (quantity)
-- **Description:** Minimum memory to reserve
-- **Default:** `2Gi`
-- **Format:** `<number>Gi` or `<number>Mi`
-
-### Memory Limit
-- **Variable:** `resources.limits.memory`
-- **File:** `k8s/statefulset.yaml`
-- **Line:** ~102
-- **Type:** String (quantity)
-- **Description:** Maximum memory allowed
-- **Default:** `8Gi`
-- **Format:** `<number>Gi` or `<number>Mi`
-
-### CPU Request
-- **Variable:** `resources.requests.cpu`
-- **File:** `k8s/statefulset.yaml`
-- **Line:** ~100
-- **Type:** String (quantity)
-- **Description:** Minimum CPU to reserve
-- **Default:** `1000m` (1 core)
-- **Format:** `<number>m` (millicores) or `<number>` (cores)
-
-### CPU Limit
-- **Variable:** `resources.limits.cpu`
-- **File:** `k8s/statefulset.yaml`
-- **Line:** ~103
-- **Type:** String (quantity)
-- **Description:** Maximum CPU allowed
-- **Default:** `4000m` (4 cores)
-- **Format:** `<number>m` (millicores) or `<number>` (cores)
-
-### Storage Size
-- **Variable:** `storage` (under volumeClaimTemplates)
-- **File:** `k8s/statefulset.yaml`
-- **Line:** ~120
-- **Type:** String (quantity)
-- **Description:** Size of home directory PVC
-- **Default:** `10Gi`
-- **Format:** `<number>Gi` or `<number>Ti`
-
-### Happy Server URL
-- **Variable:** `happy-server-url`
-- **File:** `k8s/configmap.yaml`
-- **Line:** ~12 (commented)
-- **Type:** String (URL)
-- **Description:** Custom Happy Coder server
-- **Default:** `https://api.cluster-fluster.com`
-- **When to set:** Self-hosted Happy instance only
-
-### Happy Webapp URL
-- **Variable:** `happy-webapp-url`
-- **File:** `k8s/configmap.yaml`
-- **Line:** ~13 (commented)
-- **Type:** String (URL)
-- **Description:** Custom Happy Coder webapp
-- **Default:** `https://app.happy.engineering`
-- **When to set:** Self-hosted Happy instance only
-
-### Display Width
-- **Variable:** `DISPLAY_WIDTH`
-- **File:** `k8s/statefulset.yaml`
-- **Line:** ~56
-- **Type:** String (number)
-- **Description:** VNC display width in pixels
-- **Default:** `1920`
-
-### Display Height
-- **Variable:** `DISPLAY_HEIGHT`
-- **File:** `k8s/statefulset.yaml`
-- **Line:** ~58
-- **Type:** String (number)
-- **Description:** VNC display height in pixels
-- **Default:** `1080`
-
-### User ID
-- **Variable:** `USER_ID`
-- **File:** `k8s/statefulset.yaml`
-- **Line:** ~51
-- **Type:** String (number)
-- **Description:** UID for claude user
-- **Default:** `1000`
-
-### Group ID
-- **Variable:** `GROUP_ID`
-- **File:** `k8s/statefulset.yaml`
-- **Line:** ~53
-- **Type:** String (number)
-- **Description:** GID for claude user
-- **Default:** `1000`
-
-### StatefulSet Replicas
-- **Variable:** `replicas`
-- **File:** `k8s/statefulset.yaml`
-- **Line:** ~21
-- **Type:** Integer
-- **Description:** Number of container instances
-- **Default:** `1`
-- **Note:** Each replica gets own home PVC
-
-## Environment Variables (Runtime)
-
-These are set at runtime, not in configuration files:
-
-### GITHUB_REPO
-- **Type:** String (URL)
-- **Description:** Repository URL (from ConfigMap)
+- **Default:** `""`
 - **Required:** Yes
-- **Source:** ConfigMap `antigravity.github-repo`
+- **Description:** Instance name used to generate resource names (`devcontainer-{name}`, `userhome-{name}`)
+- **Example:** `mydev`, `alice-dev`, `team-workspace`
 
-### GITHUB_TOKEN
+### githubRepo
 - **Type:** String
-- **Description:** GitHub PAT (from Secret)
-- **Required:** No (only for private repos)
-- **Source:** Secret `antigravity.github-token`
+- **Default:** `""`
+- **Required:** Yes
+- **Description:** GitHub repository URL to clone into `/workspace`
+- **Example:** `https://github.com/username/repository`
 
-### VNC_PASSWORD
+### ide
 - **Type:** String
-- **Description:** VNC password (from Secret)
-- **Required:** No
-- **Source:** Secret `antigravity.vnc-password`
+- **Default:** `vscode`
+- **Options:** `vscode`, `antigravity`, `none`
+- **Description:** IDE to launch inside the container
+  - `vscode` — VSCode via VNC browser UI on port 5800
+  - `antigravity` — Google Antigravity (VSCode fork) via VNC on port 5800
+  - `none` — No IDE; useful when `ssh: true` is the sole access method
 
-### HAPPY_SERVER_URL
-- **Type:** String (URL)
-- **Description:** Happy server URL (from ConfigMap)
-- **Required:** No
-- **Source:** ConfigMap `antigravity.happy-server-url`
+### ssh
+- **Type:** Boolean
+- **Default:** `false`
+- **Description:** Start an OpenSSH server on port 22 in addition to the IDE
+- **Note:** Requires `SSH_AUTHORIZED_KEYS` in env secret for key-based login
 
-### HAPPY_WEBAPP_URL
-- **Type:** String (URL)
-- **Description:** Happy webapp URL (from ConfigMap)
-- **Required:** No
-- **Source:** ConfigMap `antigravity.happy-webapp-url`
+## Image Configuration
 
-### HAPPY_HOME_DIR
-- **Type:** String (path)
-- **Description:** Happy data directory
-- **Required:** No
-- **Default:** `/home/claude/.happy`
-- **Source:** Hardcoded in StatefulSet
+### image.repository
+- **Type:** String
+- **Default:** `ghcr.io/cpfarhood/devcontainer`
+- **Description:** Container image repository
 
-### HAPPY_EXPERIMENTAL
-- **Type:** String (boolean)
-- **Description:** Enable Happy experimental features
-- **Required:** No
+### image.tag
+- **Type:** String
+- **Default:** `latest`
+- **Description:** Container image tag
+- **Best Practice:** Use specific version tags for production
+
+### image.pullPolicy
+- **Type:** String
+- **Default:** `Always`
+- **Options:** `Always`, `IfNotPresent`, `Never`
+- **Description:** Image pull policy
+
+## Happy Coder Configuration
+
+### happyServerUrl
+- **Type:** String
+- **Default:** `https://happy.farh.net`
+- **Description:** Happy Coder server endpoint
+- **When to Change:** Self-hosted Happy instance
+
+### happyWebappUrl
+- **Type:** String
+- **Default:** `https://happy-coder.farh.net`
+- **Description:** Happy Coder webapp URL
+- **When to Change:** Self-hosted Happy instance
+
+### happyHomeDir
+- **Type:** String
+- **Default:** `/config/userdata/.happy`
+- **Description:** Happy runtime state directory (persists on PVC)
+
+### happyExperimental
+- **Type:** String
+- **Default:** `"true"`
+- **Description:** Enable experimental Happy features
+
+## Display Configuration
+
+### display.width
+- **Type:** String
+- **Default:** `"1920"`
+- **Description:** VNC display width in pixels
+
+### display.height
+- **Type:** String
+- **Default:** `"1080"`
+- **Description:** VNC display height in pixels
+
+### secureConnection
+- **Type:** String
+- **Default:** `"0"`
+- **Options:** `"0"`, `"1"`
+- **Description:** Set to `"0"` when TLS is terminated at the gateway layer
+
+## User Configuration
+
+### userId
+- **Type:** String
+- **Default:** `"1000"`
+- **Description:** UID for the app user
+
+### groupId
+- **Type:** String
+- **Default:** `"1000"`
+- **Description:** GID for the app user
+
+## Storage Configuration
+
+### storage.size
+- **Type:** String
+- **Default:** `32Gi`
+- **Description:** Size of the persistent home directory
+- **Format:** Kubernetes quantity (e.g., `10Gi`, `100Gi`, `1Ti`)
+
+### storage.className
+- **Type:** String
+- **Default:** `ceph-filesystem`
+- **Description:** StorageClass name (must support ReadWriteMany)
+- **Examples:** `ceph-filesystem`, `nfs-client`, `efs-sc`, `azurefile`
+
+### shm.sizeLimit
+- **Type:** String
+- **Default:** `2Gi`
+- **Description:** `/dev/shm` size (memory-backed emptyDir for Electron apps)
+
+## Resource Limits
+
+### resources.requests.memory
+- **Type:** String
+- **Default:** `2Gi`
+- **Description:** Minimum memory to reserve
+- **Format:** Kubernetes quantity
+
+### resources.requests.cpu
+- **Type:** String
+- **Default:** `1000m`
+- **Description:** Minimum CPU to reserve
+- **Format:** Millicores (`1000m` = 1 CPU core)
+
+### resources.limits.memory
+- **Type:** String
+- **Default:** `8Gi`
+- **Description:** Maximum memory allowed
+- **Format:** Kubernetes quantity
+
+### resources.limits.cpu
+- **Type:** String
+- **Default:** `4000m`
+- **Description:** Maximum CPU allowed
+- **Format:** Millicores (`4000m` = 4 CPU cores)
+
+## Kubernetes Access
+
+### clusterAccess
+- **Type:** String
+- **Default:** `none`
+- **Options:**
+  - `none` — No cluster access
+  - `readonlyns` — Read-only access to release namespace
+  - `readwritens` — Full access to release namespace
+  - `readonly` — Read-only access cluster-wide
+  - `readwrite` — Full access cluster-wide
+- **Description:** RBAC permissions for the pod's ServiceAccount
+
+## Secrets
+
+### envSecretName
+- **Type:** String
+- **Default:** `""` (auto-generates as `devcontainer-{name}-secrets-env`)
+- **Description:** Name of existing Secret containing environment variables
+- **Keys Recognized:**
+  - `GITHUB_TOKEN` — PAT for private repo access
+  - `VNC_PASSWORD` — Password for VNC web UI
+  - `ANTHROPIC_API_KEY` — API key for Claude
+  - `SSH_AUTHORIZED_KEYS` — Public keys for SSH access
+
+## MCP Sidecars
+
+### mcpSidecars.kubernetes.enabled
+- **Type:** Boolean
 - **Default:** `true`
-- **Source:** Hardcoded in StatefulSet
+- **Description:** Enable Kubernetes MCP server sidecar
 
-## Variable Groups by Use Case
+### mcpSidecars.kubernetes.image.repository
+- **Type:** String
+- **Default:** `quay.io/containers/kubernetes_mcp_server`
+- **Description:** Kubernetes MCP server image
 
-### Minimal Deployment
-Only these variables are required for basic deployment:
-1. `storageClassName`
-2. `github-repo`
-3. `parentRefs.name`
-4. `parentRefs.namespace`
-5. `hostnames`
+### mcpSidecars.kubernetes.image.tag
+- **Type:** String
+- **Default:** `latest`
+- **Description:** Kubernetes MCP server image tag
 
-### Private Repository Deployment
-Add these for private repos:
-1. All minimal deployment variables
-2. `github-token` (sealed secret)
+### mcpSidecars.kubernetes.port
+- **Type:** Integer
+- **Default:** `8080`
+- **Description:** Port for Kubernetes MCP server
 
-### Production Deployment
-Recommended for production:
-1. All private repository variables
-2. `vnc-password` (sealed secret)
-3. `resources.requests.*` (adjusted for workload)
-4. `resources.limits.*` (adjusted for workload)
-5. `namespace` (dedicated namespace)
+### mcpSidecars.kubernetes.resources
+- **Type:** Object
+- **Default:**
+  ```yaml
+  requests:
+    memory: "64Mi"
+    cpu: "50m"
+  limits:
+    memory: "256Mi"
+    cpu: "500m"
+  ```
+- **Description:** Resource limits for Kubernetes MCP sidecar
 
-### Multi-User Deployment
-For multiple users:
-1. All production deployment variables
-2. `replicas` (set to number of users)
-3. Larger `storage` size for home PVCs
+### mcpSidecars.flux.enabled
+- **Type:** Boolean
+- **Default:** `true`
+- **Description:** Enable Flux MCP server sidecar
 
-## Quick Copy Templates
+### mcpSidecars.flux.image.repository
+- **Type:** String
+- **Default:** `ghcr.io/controlplaneio-fluxcd/flux-operator-mcp`
+- **Description:** Flux MCP server image
 
-### Minimal Required Variables
+### mcpSidecars.flux.image.tag
+- **Type:** String
+- **Default:** `v0.41.1`
+- **Description:** Flux MCP server image tag
+
+### mcpSidecars.flux.port
+- **Type:** Integer
+- **Default:** `8081`
+- **Description:** Port for Flux MCP server
+
+### mcpSidecars.flux.resources
+- **Type:** Object
+- **Default:**
+  ```yaml
+  requests:
+    memory: "64Mi"
+    cpu: "50m"
+  limits:
+    memory: "256Mi"
+    cpu: "500m"
+  ```
+- **Description:** Resource limits for Flux MCP sidecar
+
+## Usage Examples
+
+### Minimal Configuration
+
 ```yaml
-# k8s/statefulset.yaml
-storageClassName: "CHANGE_ME"  # Line ~117
-
-# k8s/configmap.yaml
-github-repo: "CHANGE_ME"  # Line ~9
-
-# k8s/httproute.yaml
-parentRefs:
-- name: CHANGE_ME  # Line ~8
-  namespace: CHANGE_ME  # Line ~9
-hostnames:
-- "CHANGE_ME"  # Line ~11
+name: mydev
+githubRepo: https://github.com/user/repo
 ```
 
-### With Secrets
-```bash
-kubectl create secret generic antigravity-secrets \
-  --from-literal=github-token='CHANGE_ME' \
-  --from-literal=vnc-password='CHANGE_ME' \
-  --dry-run=client -o yaml | \
-  kubeseal --format=yaml > k8s/sealedsecrets.yaml
-```
+### Production Configuration
 
-### With Resource Adjustments
 ```yaml
-# k8s/statefulset.yaml (lines ~98-103)
+name: prod-workspace
+githubRepo: https://github.com/company/application
+ide: vscode
+ssh: true
+
+image:
+  tag: v1.0.0
+
+storage:
+  size: 100Gi
+  className: ceph-filesystem
+
 resources:
   requests:
-    memory: "CHANGE_ME"  # e.g., 4Gi
-    cpu: "CHANGE_ME"     # e.g., 2000m
+    memory: "4Gi"
+    cpu: "2000m"
   limits:
-    memory: "CHANGE_ME"  # e.g., 16Gi
-    cpu: "CHANGE_ME"     # e.g., 8000m
+    memory: "16Gi"
+    cpu: "8000m"
+
+clusterAccess: readwritens
+
+mcpSidecars:
+  kubernetes:
+    enabled: true
+  flux:
+    enabled: false
 ```
+
+### Development Team Configuration
+
+```yaml
+name: team-dev
+githubRepo: https://github.com/team/project
+ide: antigravity
+
+display:
+  width: "2560"
+  height: "1440"
+
+storage:
+  size: 50Gi
+  className: nfs-client
+
+clusterAccess: readonly
+
+happyServerUrl: https://happy.internal.company.com
+happyWebappUrl: https://happy-app.internal.company.com
+```
+
+## Helm CLI Examples
+
+### Using --set Flags
+
+```bash
+# Basic deployment
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/user/repo
+
+# With multiple values
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/user/repo \
+  --set ide=antigravity \
+  --set storage.size=50Gi \
+  --set clusterAccess=readwritens \
+  --set mcpSidecars.flux.enabled=false
+```
+
+### Using Values File
+
+Create `custom-values.yaml`:
+```yaml
+name: mydev
+githubRepo: https://github.com/user/repo
+storage:
+  size: 50Gi
+clusterAccess: readwritens
+```
+
+Deploy:
+```bash
+helm install mydev ./chart -f custom-values.yaml
+```
+
+### Combining Methods
+
+```bash
+helm install mydev ./chart \
+  -f base-values.yaml \
+  -f prod-values.yaml \
+  --set githubRepo=https://github.com/user/repo \
+  --set image.tag=v2.0.0
+```
+
+## Value Precedence
+
+Values are applied in order of precedence (highest to lowest):
+1. `--set` flags on command line
+2. `-f` values files (later files override earlier)
+3. `chart/values.yaml` defaults
+
+## Environment Variables
+
+These environment variables are set in the container based on chart values:
+
+| Environment Variable | Source Value | Description |
+|---------------------|--------------|-------------|
+| `GITHUB_REPO` | `githubRepo` | Repository to clone |
+| `GITHUB_TOKEN` | Secret: `github-token` | PAT for private repos |
+| `VNC_PASSWORD` | Secret: `vnc-password` | VNC access password |
+| `ANTHROPIC_API_KEY` | Secret: `anthropic-api-key` | Claude API key |
+| `SSH_AUTHORIZED_KEYS` | Secret: `ssh-authorized-keys` | SSH public keys |
+| `HAPPY_SERVER_URL` | `happyServerUrl` | Happy server endpoint |
+| `HAPPY_WEBAPP_URL` | `happyWebappUrl` | Happy webapp URL |
+| `HAPPY_HOME_DIR` | `happyHomeDir` | Happy data directory |
+| `HAPPY_EXPERIMENTAL` | `happyExperimental` | Experimental features |
+| `DISPLAY_WIDTH` | `display.width` | VNC width |
+| `DISPLAY_HEIGHT` | `display.height` | VNC height |
+| `SECURE_CONNECTION` | `secureConnection` | TLS termination |
+| `USER_ID` | `userId` | App user UID |
+| `GROUP_ID` | `groupId` | App user GID |
+| `IDE` | `ide` | IDE to launch |
+| `SSH` | `ssh` | SSH server enabled |

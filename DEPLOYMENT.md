@@ -1,432 +1,424 @@
 # Deployment Guide
 
-This guide provides step-by-step instructions for deploying the Antigravity Dev Container to Kubernetes.
+This guide provides step-by-step instructions for deploying the Antigravity Dev Container using Helm.
 
 ## Prerequisites
 
-- Kubernetes cluster with Gateway API support
+- Kubernetes cluster (1.19+)
 - `kubectl` configured to access your cluster
+- `helm` CLI installed (3.0+)
 - ReadWriteMany storage class available (e.g., `ceph-filesystem`, `nfs-client`, `efs-sc`)
-- Sealed Secrets controller installed (for secret encryption)
 - GitHub Container Registry access (images are public)
 
-## Required Configuration Variables
+## Quick Start
 
-Before deploying, you need to provide the following configuration:
-
-### 1. Storage Configuration
-
-**Variable:** `storageClassName`
-**Location:** `k8s/statefulset.yaml` (line ~117)
-**Description:** The ReadWriteMany storage class name in your cluster
-**Example values:**
-- `ceph-filesystem` (Rook-Ceph)
-- `nfs-client` (NFS)
-- `efs-sc` (AWS EFS)
-- `azurefile` (Azure Files)
-- `filestore` (GCP Filestore)
-
-**How to find your storage class:**
-```bash
-kubectl get storageclass
-```
-
-Look for a storage class that supports `ReadWriteMany` access mode.
-
-### 2. GitHub Repository (Required)
-
-**Variable:** `github-repo`
-**Location:** `k8s/configmap.yaml` (line ~9)
-**Description:** The GitHub repository URL to clone on container startup
-**Format:** `https://github.com/username/repository`
-**Example:** `https://github.com/cpfarhood/my-project`
-
-### 3. GitHub Token (Optional, for private repos)
-
-**Variable:** `github-token`
-**Location:** `k8s/secrets-example.yaml` (sealed secret)
-**Description:** GitHub Personal Access Token for cloning private repositories
-**Format:** `ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
-**Required:** Only if cloning a private repository
-
-**How to create a GitHub token:**
-1. Go to https://github.com/settings/tokens
-2. Click "Generate new token (classic)"
-3. Select scopes: `repo` (for private repos)
-4. Generate and copy the token
-
-### 4. VNC Password (Optional)
-
-**Variable:** `vnc-password`
-**Location:** `k8s/secrets-example.yaml` (sealed secret)
-**Description:** Password for accessing the VNC web interface
-**Format:** Any string (recommend 12+ characters)
-**Required:** Optional, but recommended for security
-
-### 5. Gateway Configuration (Required for external access)
-
-**Variables:**
-- `parentRefs.name` - Your Gateway resource name
-- `parentRefs.namespace` - Namespace where Gateway is deployed
-- `hostnames` - Domain name for accessing the container
-
-**Location:** `k8s/httproute.yaml`
-**Example:**
-```yaml
-parentRefs:
-- name: cilium-gateway  # Your Gateway name
-  namespace: kube-system  # Your Gateway namespace
-hostnames:
-- "devcontainer.example.com"  # Your domain
-```
-
-### 6. Namespace (Optional)
-
-**Variable:** `namespace`
-**Location:** `k8s/kustomization.yaml` (line ~5)
-**Description:** Kubernetes namespace to deploy into
-**Default:** `default`
-**Example:** `devcontainer`, `development`, `team-workspaces`
-
-### 7. Container Image (Optional)
-
-**Variable:** `image`
-**Location:** `k8s/statefulset.yaml` (line ~32)
-**Description:** Docker image to use
-**Default:** `ghcr.io/cpfarhood/devcontainer:latest`
-**Format:** `registry/repository:tag`
-
-### 8. Resource Limits (Optional)
-
-**Variables:**
-- `resources.requests.memory` (default: `2Gi`)
-- `resources.requests.cpu` (default: `1000m`)
-- `resources.limits.memory` (default: `8Gi`)
-- `resources.limits.cpu` (default: `4000m`)
-
-**Location:** `k8s/statefulset.yaml` (lines ~98-103)
-
-### 9. Happy Coder Configuration (Optional)
-
-**Variables:**
-- `happy-server-url` - Custom Happy server URL
-- `happy-webapp-url` - Custom Happy webapp URL
-
-**Location:** `k8s/configmap.yaml` (lines ~12-13, commented out)
-**Default:** Uses Happy's default servers
-**When to set:** Only if using a self-hosted Happy instance
-
-## Deployment Steps
-
-### Step 1: Clone the Repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/cpfarhood/devcontainer.git
 cd devcontainer
 ```
 
-### Step 2: Configure Storage Class
+### 2. Create Secret (Optional)
 
-Edit `k8s/statefulset.yaml` and find the `volumeClaimTemplates` section (around line 117):
-
-```bash
-# Find your storage class
-kubectl get storageclass
-
-# Edit the file
-vi k8s/statefulset.yaml
-```
-
-Change `storageClassName` to match your cluster:
-```yaml
-volumeClaimTemplates:
-- metadata:
-    name: userhome
-  spec:
-    accessModes: [ "ReadWriteMany" ]
-    storageClassName: "ceph-filesystem"  # ← Change this
-    resources:
-      requests:
-        storage: 10Gi
-```
-
-### Step 3: Configure GitHub Repository
-
-Edit `k8s/configmap.yaml`:
+For private repos or VNC password:
 
 ```bash
-vi k8s/configmap.yaml
+kubectl create secret generic devcontainer-mydev-secrets-env \
+  --from-literal=GITHUB_TOKEN='ghp_...' \
+  --from-literal=VNC_PASSWORD='changeme' \
+  --from-literal=ANTHROPIC_API_KEY='sk-ant-...'
 ```
 
-Set your repository URL:
-```yaml
-data:
-  github-repo: "https://github.com/yourusername/yourrepo"
-```
-
-### Step 4: Configure Gateway (HTTPRoute)
-
-Edit `k8s/httproute.yaml`:
+### 3. Deploy with Helm
 
 ```bash
-# Find your Gateway
-kubectl get gateway -A
+# Basic deployment
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo
 
-# Edit the file
-vi k8s/httproute.yaml
+# With custom storage class
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set storage.className=nfs-client
+
+# With cluster access for kubectl
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set clusterAccess=readwritens
 ```
 
-Update with your Gateway details:
-```yaml
-spec:
-  parentRefs:
-  - name: your-gateway-name        # ← Change this
-    namespace: your-gateway-namespace  # ← Change this
-  hostnames:
-  - "devcontainer.yourdomain.com"  # ← Change this
-```
-
-### Step 5: Create Secrets
-
-Create the secrets for GitHub token and VNC password:
+### 4. Access the Container
 
 ```bash
-# Create the secret
-kubectl create secret generic antigravity-secrets \
-  --from-literal=github-token='ghp_your_token_here' \
-  --from-literal=vnc-password='your_vnc_password' \
-  --dry-run=client -o yaml | \
-  kubeseal --format=yaml > k8s/sealedsecrets.yaml
-
-# Verify the sealed secret was created
-cat k8s/sealedsecrets.yaml
-```
-
-**If you don't have Sealed Secrets controller:**
-
-Option 1: Install Sealed Secrets
-```bash
-kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.24.0/controller.yaml
-```
-
-Option 2: Use plain secrets (not recommended for production)
-```bash
-kubectl create secret generic antigravity-secrets \
-  --from-literal=github-token='ghp_your_token_here' \
-  --from-literal=vnc-password='your_vnc_password'
-```
-
-### Step 6: Review Configuration (Optional)
-
-Review and adjust optional settings:
-
-**Namespace:**
-```bash
-vi k8s/kustomization.yaml
-# Change line 5: namespace: default
-```
-
-**Resource limits:**
-```bash
-vi k8s/statefulset.yaml
-# Adjust lines 98-103 for your needs
-```
-
-### Step 7: Deploy to Kubernetes
-
-```bash
-# Deploy everything
-kubectl apply -k k8s/
-
-# Or if you changed the namespace
-kubectl apply -k k8s/ -n your-namespace
-```
-
-### Step 8: Verify Deployment
-
-```bash
-# Check StatefulSet
-kubectl get statefulset antigravity
-
-# Check Pod
-kubectl get pods -l app=antigravity
-
-# Check PVC
-kubectl get pvc -l app=antigravity
-
-# Check HTTPRoute
-kubectl get httproute antigravity
-
-# View logs
-kubectl logs antigravity-0
-```
-
-### Step 9: Access the Container
-
-**Option A: Via HTTPRoute (external access)**
-```bash
-# Open in browser
-open https://devcontainer.yourdomain.com
-```
-
-**Option B: Via Port Forward (local access)**
-```bash
-# Port forward to localhost
-kubectl port-forward statefulset/antigravity 5800:5800
-
-# Open in browser
+# Port forward
+kubectl port-forward deployment/devcontainer-mydev 5800:5800
 open http://localhost:5800
 ```
 
-## Configuration Summary
+## Deployment Options
 
-Here's a quick checklist of all variables you need to set:
+### Using Values File
 
-### Required Variables
+Create a custom `values.yaml`:
 
-| Variable | File | Line | Example Value |
-|----------|------|------|---------------|
-| `storageClassName` | `k8s/statefulset.yaml` | ~117 | `ceph-filesystem` |
-| `github-repo` | `k8s/configmap.yaml` | ~9 | `https://github.com/user/repo` |
-| `parentRefs.name` | `k8s/httproute.yaml` | ~8 | `cilium-gateway` |
-| `parentRefs.namespace` | `k8s/httproute.yaml` | ~9 | `kube-system` |
-| `hostnames` | `k8s/httproute.yaml` | ~10 | `devcontainer.example.com` |
+```yaml
+name: mydev
+githubRepo: https://github.com/youruser/yourrepo
+ide: vscode
+ssh: false
 
-### Optional Variables
+# Storage
+storage:
+  size: 32Gi
+  className: ceph-filesystem
 
-| Variable | File | Line | Default | When to Change |
-|----------|------|------|---------|----------------|
-| `namespace` | `k8s/kustomization.yaml` | ~5 | `default` | If deploying to different namespace |
-| `github-token` | Sealed secret | N/A | None | For private repos |
-| `vnc-password` | Sealed secret | N/A | None | For VNC security |
-| `image` | `k8s/statefulset.yaml` | ~32 | `ghcr.io/cpfarhood/devcontainer:latest` | For specific version or custom build |
-| `resources.*` | `k8s/statefulset.yaml` | ~98-103 | 2Gi/8Gi RAM, 1/4 CPU | Based on workload needs |
-| `happy-server-url` | `k8s/configmap.yaml` | ~12 | Default Happy server | For self-hosted Happy |
-| `happy-webapp-url` | `k8s/configmap.yaml` | ~13 | Default Happy webapp | For self-hosted Happy |
+# Resources
+resources:
+  requests:
+    memory: "4Gi"
+    cpu: "2000m"
+  limits:
+    memory: "16Gi"
+    cpu: "8000m"
+
+# Kubernetes access
+clusterAccess: readwritens
+
+# MCP sidecars
+mcpSidecars:
+  kubernetes:
+    enabled: true
+  flux:
+    enabled: false
+```
+
+Deploy:
+
+```bash
+helm install mydev ./chart -f values.yaml
+```
+
+### SSH Access Setup
+
+Enable SSH and add your public key:
+
+```bash
+# Create secret with SSH key
+kubectl create secret generic devcontainer-mydev-secrets-env \
+  --from-literal=SSH_AUTHORIZED_KEYS='ssh-ed25519 AAAA...'
+
+# Deploy with SSH enabled
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set ssh=true
+
+# Connect via SSH
+kubectl port-forward deployment/devcontainer-mydev 2222:22
+ssh -p 2222 user@localhost
+```
+
+### MCP Sidecar Configuration
+
+Control MCP servers for AI-assisted operations:
+
+```bash
+# Disable all MCP sidecars
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set mcpSidecars.kubernetes.enabled=false \
+  --set mcpSidecars.flux.enabled=false
+
+# Enable only Kubernetes MCP
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set mcpSidecars.kubernetes.enabled=true \
+  --set mcpSidecars.flux.enabled=false
+```
+
+### Cluster Access Levels
+
+Configure Kubernetes RBAC permissions:
+
+| Value | Scope | Permissions | Use Case |
+|-------|-------|-------------|----------|
+| `none` | No access | None | Default, isolated development |
+| `readonlyns` | Namespace | Read-only | View resources in namespace |
+| `readwritens` | Namespace | Full access | Deploy apps in namespace |
+| `readonly` | Cluster-wide | Read-only | View all cluster resources |
+| `readwrite` | Cluster-wide | Full access | Cluster administration |
+
+```bash
+# Example: Full access within namespace
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set clusterAccess=readwritens
+```
+
+## Ingress Configuration
+
+### Using Gateway API HTTPRoute
+
+Create an HTTPRoute for external access:
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: devcontainer-mydev
+spec:
+  parentRefs:
+  - name: your-gateway
+    namespace: your-gateway-namespace
+  hostnames:
+  - devcontainer.example.com
+  rules:
+  - backendRefs:
+    - name: devcontainer-mydev
+      port: 5800
+```
+
+### Using Traditional Ingress
+
+Create an Ingress resource:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devcontainer-mydev
+spec:
+  rules:
+  - host: devcontainer.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: devcontainer-mydev
+            port:
+              number: 5800
+```
+
+## Advanced Configurations
+
+### Custom Happy Coder Endpoints
+
+For self-hosted Happy instances:
+
+```bash
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set happyServerUrl=https://your-happy-server.com \
+  --set happyWebappUrl=https://your-happy-webapp.com
+```
+
+### Custom Display Resolution
+
+```bash
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set display.width=2560 \
+  --set display.height=1440
+```
+
+### Different IDE Options
+
+```bash
+# Use Google Antigravity
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set ide=antigravity
+
+# SSH-only mode (no GUI)
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set ide=none \
+  --set ssh=true
+```
+
+## Helm Operations
+
+### List Deployments
+
+```bash
+helm list
+```
+
+### Upgrade Deployment
+
+```bash
+# Change values
+helm upgrade mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/newrepo
+
+# Upgrade with new chart version
+git pull
+helm upgrade mydev ./chart
+```
+
+### Uninstall
+
+```bash
+helm uninstall mydev
+
+# Note: PVC persists by default
+kubectl delete pvc userhome-mydev
+```
+
+### Rollback
+
+```bash
+# View history
+helm history mydev
+
+# Rollback to previous version
+helm rollback mydev
+
+# Rollback to specific revision
+helm rollback mydev 3
+```
 
 ## Troubleshooting
 
-### Pod not starting
+### Pod Not Starting
 
-**Check events:**
 ```bash
-kubectl describe pod antigravity-0
+# Check pod status
+kubectl get pods -l app.kubernetes.io/instance=mydev
+
+# Describe pod for events
+kubectl describe pod -l app.kubernetes.io/instance=mydev
+
+# Check logs
+kubectl logs deployment/devcontainer-mydev
 ```
 
-**Common issues:**
-- Storage class doesn't support ReadWriteMany
-- PVC not binding (check storage class exists)
-- Image pull errors (check image name)
+### Repository Not Cloning
 
-### Repository not cloning
-
-**Check logs:**
 ```bash
-kubectl logs antigravity-0 | grep -A 10 "Repository Initialization"
+# Check init logs
+kubectl logs deployment/devcontainer-mydev | grep "Repository Initialization"
+
+# Verify secret exists
+kubectl get secret devcontainer-mydev-secrets-env
+
+# Check environment
+kubectl exec deployment/devcontainer-mydev -- env | grep GITHUB
 ```
 
-**Common issues:**
-- Invalid GitHub URL
-- Private repo without token
-- Token doesn't have correct permissions
+### VNC Not Accessible
 
-### HTTPRoute not working
-
-**Check HTTPRoute:**
 ```bash
-kubectl describe httproute antigravity
+# Check service
+kubectl get svc devcontainer-mydev
+kubectl describe svc devcontainer-mydev
+
+# Test with port-forward
+kubectl port-forward deployment/devcontainer-mydev 5800:5800
 ```
 
-**Common issues:**
-- Gateway name/namespace incorrect
-- Domain not pointing to Gateway
-- TLS certificate not issued
+### MCP Sidecar Issues
 
-### VNC not accessible
-
-**Check service:**
 ```bash
-kubectl get svc antigravity
-kubectl describe svc antigravity
+# Check all containers
+kubectl get pod -l app.kubernetes.io/instance=mydev -o jsonpath='{.items[0].spec.containers[*].name}'
+
+# Check MCP container logs
+kubectl logs deployment/devcontainer-mydev -c kubernetes-mcp
+kubectl logs deployment/devcontainer-mydev -c flux-mcp
+
+# Verify RBAC permissions
+kubectl auth can-i --list --as system:serviceaccount:default:devcontainer-mydev
 ```
 
-**Port forward test:**
+### Storage Issues
+
 ```bash
-kubectl port-forward antigravity-0 5800:5800
-# Try accessing http://localhost:5800
+# Check PVC
+kubectl get pvc userhome-mydev
+kubectl describe pvc userhome-mydev
+
+# Check available storage classes
+kubectl get storageclass
+
+# Verify ReadWriteMany support
+kubectl get storageclass <class-name> -o yaml | grep -i accessmodes
 ```
 
-## Quick Deploy Example
+## Best Practices
 
-Complete deployment with all values filled in:
+### Production Deployment
+
+1. **Use specific image tags** instead of `latest`:
+   ```bash
+   helm install mydev ./chart --set image.tag=v1.0.0
+   ```
+
+2. **Set resource limits** appropriately:
+   ```yaml
+   resources:
+     requests:
+       memory: "4Gi"
+       cpu: "2000m"
+     limits:
+       memory: "8Gi"
+       cpu: "4000m"
+   ```
+
+3. **Enable VNC password**:
+   ```bash
+   kubectl create secret generic devcontainer-mydev-secrets-env \
+     --from-literal=VNC_PASSWORD='strong-password-here'
+   ```
+
+4. **Use dedicated namespace**:
+   ```bash
+   kubectl create namespace dev-environments
+   helm install mydev ./chart -n dev-environments
+   ```
+
+5. **Configure appropriate cluster access**:
+   - Use `readonlyns` or `readwritens` for namespace-scoped work
+   - Avoid `readwrite` cluster-wide access unless necessary
+
+### Multi-User Deployment
+
+For teams, create separate deployments per user:
 
 ```bash
-# 1. Set your values
-STORAGE_CLASS="ceph-filesystem"
-GITHUB_REPO="https://github.com/myuser/myproject"
-GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-VNC_PASSWORD="my-secure-password-123"
-GATEWAY_NAME="cilium-gateway"
-GATEWAY_NAMESPACE="kube-system"
-DOMAIN="devcontainer.example.com"
+# User 1
+helm install alice-dev ./chart \
+  --set name=alice-dev \
+  --set githubRepo=https://github.com/alice/project
 
-# 2. Update storage class
-sed -i "s/storageClassName: .*/storageClassName: \"$STORAGE_CLASS\"/" k8s/statefulset.yaml
-
-# 3. Update GitHub repo
-sed -i "s|github-repo: .*|github-repo: \"$GITHUB_REPO\"|" k8s/configmap.yaml
-
-# 4. Update Gateway
-sed -i "s/- name: gateway/- name: $GATEWAY_NAME/" k8s/httproute.yaml
-sed -i "s/namespace: gateway-system/namespace: $GATEWAY_NAMESPACE/" k8s/httproute.yaml
-sed -i "s/antigravity.example.com/$DOMAIN/" k8s/httproute.yaml
-
-# 5. Create sealed secret
-kubectl create secret generic antigravity-secrets \
-  --from-literal=github-token="$GITHUB_TOKEN" \
-  --from-literal=vnc-password="$VNC_PASSWORD" \
-  --dry-run=client -o yaml | \
-  kubeseal --format=yaml > k8s/sealedsecrets.yaml
-
-# 6. Deploy
-kubectl apply -k k8s/
-
-# 7. Watch deployment
-kubectl get pods -l app=antigravity -w
+# User 2
+helm install bob-dev ./chart \
+  --set name=bob-dev \
+  --set githubRepo=https://github.com/bob/project
 ```
 
-## Updates and Maintenance
+### Backup and Recovery
 
-### Updating the Image
-
-The image is automatically built and pushed to ghcr.io on every commit to main.
-
-**To use latest:**
-```bash
-kubectl set image statefulset/antigravity \
-  antigravity=ghcr.io/cpfarhood/devcontainer:latest
-```
-
-**To use specific version:**
-```bash
-kubectl set image statefulset/antigravity \
-  antigravity=ghcr.io/cpfarhood/devcontainer:v1.0.0
-```
-
-### Changing Repository
-
-Edit the ConfigMap and restart:
-```bash
-kubectl edit configmap antigravity-config
-# Change github-repo value
-kubectl rollout restart statefulset/antigravity
-```
-
-### Scaling
+The home directory persists on PVC. To backup:
 
 ```bash
-# Scale to multiple instances (each gets own home PVC)
-kubectl scale statefulset antigravity --replicas=3
+# Create backup pod
+kubectl run backup --image=busybox --restart=Never --rm -i --tty \
+  -- tar czf - -C /home . | gzip > home-backup.tar.gz
 ```
 
 ## Support

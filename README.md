@@ -150,6 +150,54 @@ helm install mydev ./chart \
 
 With any non-`none` value, a `ServiceAccount` named `devcontainer-{name}` is created and set as the pod's `serviceAccountName`, so `kubectl` and any in-cluster API calls use it automatically.
 
+### MCP Sidecars
+
+The devcontainer includes MCP (Model Context Protocol) servers as sidecar containers that enable AI assistants to interact with Kubernetes and Flux:
+
+| Sidecar | Default | Purpose |
+|---------|---------|---------|
+| `mcpSidecars.kubernetes.enabled` | `true` | Kubernetes API access via MCP |
+| `mcpSidecars.flux.enabled` | `true` | Flux GitOps operations via MCP |
+
+These sidecars inherit the pod's ServiceAccount RBAC permissions (controlled by `clusterAccess`).
+
+**Disable MCP sidecars:**
+```bash
+# Disable both sidecars
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set mcpSidecars.kubernetes.enabled=false \
+  --set mcpSidecars.flux.enabled=false
+
+# Or selectively disable
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set mcpSidecars.flux.enabled=false  # Disable only Flux MCP
+```
+
+**Custom MCP configuration:**
+```yaml
+# values.yaml override
+mcpSidecars:
+  kubernetes:
+    enabled: true
+    image:
+      repository: quay.io/containers/kubernetes_mcp_server
+      tag: latest
+    port: 8080
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+  flux:
+    enabled: false  # Disabled in this example
+```
+
 ### Display and resources
 
 | Value | Default | Description |
