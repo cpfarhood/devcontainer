@@ -88,7 +88,7 @@ MCP (Model Context Protocol) servers run as sidecar containers in the pod, enabl
 |---------|-------|---------|------|----------|---------|
 | `kubernetes-mcp` | `quay.io/containers/kubernetes_mcp_server` | v0.0.57 | 8080 | `http://localhost:8080/sse` | Enabled |
 | `flux-mcp` | `ghcr.io/controlplaneio-fluxcd/flux-operator-mcp` | v0.41.1 | 8081 | `http://localhost:8081/sse` | Enabled |
-| `homeassistant-mcp` | `ghcr.io/homeassistant-ai/ha-mcp` | v6.7.1 | 8087 | `http://localhost:8087/sse` | Disabled |
+| `homeassistant-mcp` | `ghcr.io/homeassistant-ai/ha-mcp` | 6.7.1 | 8087 | `http://localhost:8087/sse` | Disabled |
 
 **Note:**
 - Kubernetes and Flux sidecars require `clusterAccess` != `none` to be deployed (they need RBAC permissions)

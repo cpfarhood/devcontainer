@@ -99,7 +99,7 @@ mcpSidecars:
     enabled: false  # Disabled by default, requires HOMEASSISTANT_URL and HOMEASSISTANT_TOKEN
     image:
       repository: ghcr.io/homeassistant-ai/ha-mcp
-      tag: v6.7.1  # Pinned version (Feb 20, 2026) - latest stable release
+      tag: 6.7.1  # Pinned version (Feb 20, 2026) - latest stable release
     port: 8087
     resources:
       requests:

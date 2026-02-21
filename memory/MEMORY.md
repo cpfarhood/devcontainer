@@ -16,7 +16,7 @@
 ## MCP Sidecars
 - **Kubernetes MCP** (v0.0.57, port 8080): Only deployed when enabled AND `clusterAccess` != `none`
 - **Flux MCP** (v0.41.1, port 8081): Only deployed when enabled AND `clusterAccess` != `none`
-- **Home Assistant MCP** (v6.7.1, port 8087): Disabled by default, requires secrets:
+- **Home Assistant MCP** (6.7.1, port 8087): Disabled by default, requires secrets:
   - `homeassistant-url`: Base URL like `http://homeassistant.local:8123`
   - `homeassistant-token`: Long-lived access token
 - **Playwright MCP**: External service, not a sidecar
