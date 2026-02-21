@@ -73,7 +73,7 @@ mcpSidecars:
     enabled: true
     image:
       repository: quay.io/containers/kubernetes_mcp_server
-      tag: latest
+      tag: v0.0.57  # Pinned version (Jan 27, 2025) with token exchange and field selector support
     port: 8080
     resources:
       requests:
@@ -99,7 +99,7 @@ mcpSidecars:
     enabled: false  # Disabled by default, requires HOMEASSISTANT_URL and HOMEASSISTANT_TOKEN
     image:
       repository: ghcr.io/homeassistant-ai/ha-mcp
-      tag: stable
+      tag: v6.7.1  # Pinned version (Feb 20, 2026) - latest stable release
     port: 8087
     resources:
       requests:

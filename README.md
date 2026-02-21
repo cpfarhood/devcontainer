@@ -221,7 +221,7 @@ mcpSidecars:
     enabled: true
     image:
       repository: ghcr.io/homeassistant-ai/ha-mcp
-      tag: stable  # or 'latest' for dev builds
+      tag: v6.7.1  # Override the pinned version if needed
     port: 8087
     resources:
       requests:

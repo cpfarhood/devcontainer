@@ -14,13 +14,14 @@
 - Chart published as OCI artifact to GHCR, reconciled by Flux
 
 ## MCP Sidecars
-- **Kubernetes MCP** (port 8080): Only deployed when enabled AND `clusterAccess` != `none`
-- **Flux MCP** (port 8081): Only deployed when enabled AND `clusterAccess` != `none`
-- **Home Assistant MCP** (port 8087): Disabled by default, requires secrets:
+- **Kubernetes MCP** (v0.0.57, port 8080): Only deployed when enabled AND `clusterAccess` != `none`
+- **Flux MCP** (v0.41.1, port 8081): Only deployed when enabled AND `clusterAccess` != `none`
+- **Home Assistant MCP** (v6.7.1, port 8087): Disabled by default, requires secrets:
   - `homeassistant-url`: Base URL like `http://homeassistant.local:8123`
   - `homeassistant-token`: Long-lived access token
 - **Playwright MCP**: External service, not a sidecar
 - Configure via `mcpSidecars.<name>.enabled` in values
+- **Version Strategy**: All MCP images use pinned versions for stability (no `latest` tags)
 
 ## Common Gotchas
 - `baseimage-gui` creates user dynamically — don't hardcode usernames in scripts, use numeric UID/GID
