@@ -4,6 +4,62 @@ set -e
 
 echo "=== Repository Initialization ==="
 
+# Set up basic git configuration
+echo "Configuring git user settings..."
+# Use environment variables if provided, otherwise use defaults
+GIT_USER_NAME="${GIT_USER_NAME:-DevContainer User}"
+GIT_USER_EMAIL="${GIT_USER_EMAIL:-devcontainer@example.com}"
+
+git config --global user.name "$GIT_USER_NAME"
+git config --global user.email "$GIT_USER_EMAIL"
+
+# Set up git credentials early if GITHUB_TOKEN is provided
+# This ensures all git operations have proper authentication
+if [ -n "$GITHUB_TOKEN" ]; then
+    echo "Setting up git credentials..."
+    # Configure git to use credential store globally
+    git config --global credential.helper store
+
+    # Create or update the credentials file
+    CREDENTIALS_FILE="/config/userdata/.git-credentials"
+
+    # Support multiple git hosting providers
+    # GitHub supports both oauth2 and token as username
+    echo "https://oauth2:${GITHUB_TOKEN}@github.com" > "$CREDENTIALS_FILE"
+    echo "https://${GITHUB_TOKEN}:x-oauth-basic@github.com" >> "$CREDENTIALS_FILE"
+    echo "https://token:${GITHUB_TOKEN}@github.com" >> "$CREDENTIALS_FILE"
+
+    # GitLab format (if same token works)
+    if [ -n "$GITLAB_HOST" ]; then
+        echo "https://oauth2:${GITHUB_TOKEN}@${GITLAB_HOST}" >> "$CREDENTIALS_FILE"
+    fi
+
+    chmod 600 "$CREDENTIALS_FILE"
+
+    # Also create a symlink in the home directory if it doesn't exist
+    # This handles cases where git might look in different locations
+    if [ ! -f "$HOME/.git-credentials" ] && [ "$HOME" != "/config/userdata" ]; then
+        ln -sf "$CREDENTIALS_FILE" "$HOME/.git-credentials"
+    fi
+
+    echo "Git credentials configured"
+else
+    # Even without a token, ensure git has a proper credential helper configured
+    # This prevents errors when credentials are added later
+    echo "No GITHUB_TOKEN provided, configuring basic git settings..."
+    git config --global credential.helper store
+
+    # Create an empty credentials file with proper permissions
+    CREDENTIALS_FILE="/config/userdata/.git-credentials"
+    touch "$CREDENTIALS_FILE"
+    chmod 600 "$CREDENTIALS_FILE"
+
+    # Create symlink if needed
+    if [ ! -f "$HOME/.git-credentials" ] && [ "$HOME" != "/config/userdata" ]; then
+        ln -sf "$CREDENTIALS_FILE" "$HOME/.git-credentials"
+    fi
+fi
+
 # Check if GITHUB_REPO is set
 if [ -z "$GITHUB_REPO" ]; then
     echo "GITHUB_REPO not set, skipping repository clone"
@@ -21,14 +77,6 @@ else
     if [ -d "$WORKSPACE_DIR/.git" ]; then
         echo "Repository already exists, pulling latest changes..."
         cd "$WORKSPACE_DIR"
-
-        # Configure git to use token if provided
-        if [ -n "$GITHUB_TOKEN" ]; then
-            git config credential.helper store
-            echo "https://oauth2:${GITHUB_TOKEN}@github.com" > /config/userdata/.git-credentials
-            chmod 600 /config/userdata/.git-credentials
-        fi
-
         git pull || echo "Pull failed, continuing anyway..."
     else
         echo "Cloning repository..."
@@ -39,11 +87,6 @@ else
             # Replace https://github.com/ with https://oauth2:token@github.com/
             CLONE_URL=$(echo "$GITHUB_REPO" | sed "s|https://github.com/|https://oauth2:${GITHUB_TOKEN}@github.com/|")
             git clone "$CLONE_URL" "$WORKSPACE_DIR"
-
-            # Configure credentials for future use
-            git config --global credential.helper store
-            echo "https://oauth2:${GITHUB_TOKEN}@github.com" > /config/userdata/.git-credentials
-            chmod 600 /config/userdata/.git-credentials
         else
             git clone "$GITHUB_REPO" "$WORKSPACE_DIR"
         fi

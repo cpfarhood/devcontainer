@@ -57,8 +57,11 @@ make push   # Push image to registry (build first)
 ```
 Container start
   → scripts/startapp.sh
-    → scripts/init-repo.sh (clone GITHUB_REPO, start Happy Coder)
-    → launch VSCode as user `claude` in /workspace
+    → scripts/init-repo.sh
+      → Configure git user & credentials
+      → Clone GITHUB_REPO (if set)
+      → Start Happy Coder
+    → Launch VSCode as user `user` in /workspace
 ```
 
 ### Key Files
@@ -66,7 +69,7 @@ Container start
 | File | Purpose |
 |------|---------|
 | `Dockerfile` | Image definition — installs Chrome, Node.js, VSCode, Happy Coder; creates non-root user (UID 1000) |
-| `scripts/init-repo.sh` | Clones GitHub repo, authenticates with token, starts Happy Coder background service |
+| `scripts/init-repo.sh` | Configures git credentials, clones GitHub repo, starts Happy Coder background service |
 | `scripts/startapp.sh` | Calls init-repo.sh then opens VSCode in the workspace |
 | `chart/` | Helm chart for Kubernetes deployment |
 | `chart/templates/deployment.yaml` | Deployment spec — main container + MCP sidecar containers |
@@ -137,7 +140,10 @@ helm install my-devcontainer ./chart -f custom-values.yaml
 - `GITHUB_REPO` — URL of repository to clone into `/workspace`
 
 **Optional:**
-- `GITHUB_TOKEN` — PAT for private repo access
+- `GITHUB_TOKEN` — PAT for private repo access (automatically configures git credentials)
+- `GIT_USER_NAME` — Git user name for commits (default: "DevContainer User")
+- `GIT_USER_EMAIL` — Git user email for commits (default: "devcontainer@example.com")
+- `GITLAB_HOST` — GitLab hostname if using GitLab with same token
 - `VNC_PASSWORD` — VNC web interface password
 - `DISPLAY_WIDTH` / `DISPLAY_HEIGHT` — VNC resolution
 - `USER_ID` / `GROUP_ID` — Override UID/GID (default 1000)
