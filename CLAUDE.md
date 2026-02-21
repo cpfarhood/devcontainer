@@ -77,7 +77,7 @@ Container start
 | `chart/templates/pvc.yaml` | PersistentVolumeClaim for user home |
 | `chart/templates/service.yaml` | ClusterIP Service (VNC + optional SSH) |
 | `chart/values.yaml` | Default Helm values |
-| `.mcp.json` | MCP server connection config (Kubernetes, Flux, Playwright) |
+| `.mcp.json` | MCP server connection config (Kubernetes, Flux, GitHub, Home Assistant, Playwright) |
 | `Makefile` | Build/deploy automation |
 
 ### MCP Sidecars
@@ -88,11 +88,13 @@ MCP (Model Context Protocol) servers run as sidecar containers in the pod, enabl
 |---------|-------|---------|------|----------|---------|
 | `kubernetes-mcp` | `quay.io/containers/kubernetes_mcp_server` | v0.0.57 | 8080 | `http://localhost:8080/sse` | Enabled |
 | `flux-mcp` | `ghcr.io/controlplaneio-fluxcd/flux-operator-mcp` | v0.41.1 | 8081 | `http://localhost:8081/sse` | Enabled |
+| `github-mcp` | `ghcr.io/modelcontextprotocol/servers/github` | latest | 8088 | `http://localhost:8088/sse` | Enabled |
 | `homeassistant-mcp` | `ghcr.io/homeassistant-ai/ha-mcp` | 6.7.1 | 8087 | `http://localhost:8087/sse` | Disabled |
 
 **Note:**
 - Kubernetes and Flux sidecars require `clusterAccess` != `none` to be deployed (they need RBAC permissions)
 - Kubernetes and Flux sidecars inherit the pod's ServiceAccount RBAC permissions
+- GitHub sidecar uses `GITHUB_TOKEN` from the env secret (same token used for repo cloning)
 - Home Assistant sidecar requires `HOMEASSISTANT_URL` and `HOMEASSISTANT_TOKEN` in the env secret
 - Playwright MCP remains an external service
 
@@ -107,6 +109,8 @@ mcpSidecars:
     enabled: false
   flux:
     enabled: false
+  github:
+    enabled: false
   homeassistant:
     enabled: false
 
@@ -116,6 +120,8 @@ mcpSidecars:
     enabled: true  # Keep Kubernetes MCP enabled
   flux:
     enabled: false # Disable Flux MCP
+  github:
+    enabled: true  # Keep GitHub MCP enabled (uses GITHUB_TOKEN)
   homeassistant:
     enabled: true  # Enable Home Assistant MCP (requires secrets)
 ```

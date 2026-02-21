@@ -108,3 +108,16 @@ mcpSidecars:
       limits:
         memory: "256Mi"
         cpu: "500m"
+  github:
+    enabled: true  # Enabled by default, uses GITHUB_TOKEN from env
+    image:
+      repository: ghcr.io/modelcontextprotocol/servers/github
+      tag: latest  # Update to specific version once available
+    port: 8088
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
