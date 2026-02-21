@@ -63,18 +63,32 @@ Container start
 
 | File | Purpose |
 |------|---------|
-| `Dockerfile` | Image definition — installs Chrome, Node.js, VSCode, Happy Coder; creates non-root user `claude` (UID 1000) |
+| `Dockerfile` | Image definition — installs Chrome, Node.js, VSCode, Happy Coder; creates non-root user (UID 1000) |
 | `scripts/init-repo.sh` | Clones GitHub repo, authenticates with token, starts Happy Coder background service |
 | `scripts/startapp.sh` | Calls init-repo.sh then opens VSCode in the workspace |
-| `k8s/statefulset.yaml` | StatefulSet + headless Service; mounts `/home` (PVC) and `/workspace` (emptyDir) |
-| `k8s/configmap.yaml` | `GITHUB_REPO`, `HAPPY_SERVER_URL`, `HAPPY_WEBAPP_URL` |
-| `k8s/httproute.yaml` | Gateway API HTTPRoute for external browser access |
-| `k8s/secrets-example.yaml` | Template for SealedSecrets (GitHub token, VNC password) |
+| `chart/` | Helm chart for Kubernetes deployment |
+| `chart/templates/deployment.yaml` | Deployment spec — main container + MCP sidecar containers |
+| `chart/templates/rbac.yaml` | ServiceAccount, Role/ClusterRole based on `clusterAccess` value |
+| `chart/templates/pvc.yaml` | PersistentVolumeClaim for user home |
+| `chart/templates/service.yaml` | ClusterIP Service (VNC + optional SSH) |
+| `chart/values.yaml` | Default Helm values |
+| `.mcp.json` | MCP server connection config (Kubernetes, Flux, Playwright) |
 | `Makefile` | Build/deploy automation |
+
+### MCP Sidecars
+
+Kubernetes and Flux MCP servers run as sidecar containers in the pod, inheriting its ServiceAccount RBAC permissions:
+
+| Sidecar | Image | Port | Endpoint |
+|---------|-------|------|----------|
+| `kubernetes-mcp` | `quay.io/containers/kubernetes_mcp_server` | 8080 | `http://localhost:8080/sse` |
+| `flux-mcp` | `ghcr.io/controlplaneio-fluxcd/flux-operator-mcp` | 8081 | `http://localhost:8081/sse` |
+
+Both are enabled by default and configurable via `mcpSidecars` in `values.yaml`. Playwright MCP remains an external service.
 
 ### Storage Model
 
-- `/home` — ReadWriteMany PVC (persists across pod restarts, holds user config/dotfiles)
+- `/config` — ReadWriteMany PVC (persists across pod restarts, holds user config/dotfiles)
 - `/workspace` — emptyDir by default (ephemeral; can be changed to PVC)
 
 ### Environment Variables
@@ -100,8 +114,9 @@ Image registry: `ghcr.io/cpfarhood/devcontainer`
 
 ## Kubernetes Notes
 
-- Uses Kustomize (`kubectl apply -k k8s/`)
-- Storage class is `ceph-filesystem` by default — change in `statefulset.yaml` for other clusters
+- Deployed via Helm chart (`chart/`), published as OCI artifact to GHCR, reconciled by Flux
+- Storage class is `ceph-filesystem` by default — change via `storage.className` in values
 - Resource limits: 1–4 CPU, 2–8Gi memory
 - Health checks (liveness/readiness probes) on port 5800
-- Secrets managed via SealedSecrets (see `k8s/secrets-example.yaml`)
+- Secrets: optional env Secret (`devcontainer-{name}-secrets-env`) for `GITHUB_TOKEN`, `VNC_PASSWORD`, etc.
+- RBAC: controlled by `clusterAccess` value (`none`, `readonlyns`, `readwritens`, `readonly`, `readwrite`)
