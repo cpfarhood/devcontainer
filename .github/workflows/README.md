@@ -1,74 +1,94 @@
 # CI/CD Pipeline Guide
 
-## 🚀 New Simplified Pipeline
+## 🚀 Simplified Pipeline - Only 3 Workflows!
 
-### For Releases (Recommended)
-Use the **Unified Release** workflow from GitHub Actions tab:
-1. Go to Actions → Unified Release → Run workflow
-2. Enter version number (e.g., 0.1.25) or choose release type
-3. Click "Run workflow"
+### 1️⃣ For Releases → **Unified Release**
+Use this for all version releases:
+1. Go to [Actions → Unified Release](https://github.com/cpfarhood/devcontainer/actions/workflows/release-unified.yaml)
+2. Click "Run workflow"
+3. Either:
+   - Enter specific version (e.g., `0.2.1`), OR
+   - Choose release type (patch/minor/major) for auto-increment
+4. Click "Run workflow"
 
-This single workflow:
+**This single workflow does EVERYTHING:**
 - ✅ Updates chart version
 - ✅ Creates git tag
-- ✅ Builds and pushes Docker image with proper tags
-- ✅ Publishes Helm chart
-- ✅ Creates GitHub Release with notes
-- ✅ **NO MORE `[skip ci]` NONSENSE!**
+- ✅ Builds Docker image with all proper tags
+- ✅ Publishes Helm chart to GHCR
+- ✅ Creates GitHub Release with changelog
+- ✅ No more `[skip ci]` blocking builds!
 
-### For Quick Fixes
-Use the **Quick Fix Build** workflow when you need to push a fix without ceremony:
-1. Go to Actions → Quick Fix Build → Run workflow
-2. Optionally specify a tag (defaults to 'latest')
-3. Click "Run workflow"
+### 2️⃣ For Quick Fixes → **Quick Fix Build**
+Use this for emergency fixes without version changes:
+1. Go to [Actions → Quick Fix Build](https://github.com/cpfarhood/devcontainer/actions/workflows/quick-fix.yaml)
+2. Click "Run workflow"
+3. Enter tag (default: `latest`)
+4. Click "Run workflow"
 
-This builds and pushes the Docker image immediately without version bumps.
+**Just builds and pushes Docker image** - no version bumps, no releases.
+
+### 3️⃣ Automatic CI → **Build and Push**
+Runs automatically on:
+- Pull requests (builds but doesn't push)
+- Tags starting with `v*` (builds and pushes)
+- Manual trigger available
 
 ## Workflow Files
 
-| Workflow | Purpose | Trigger | What it does |
-|----------|---------|---------|--------------|
-| `release-unified.yaml` | **Main release workflow** | Manual dispatch | Complete release process |
-| `quick-fix.yaml` | Emergency fixes | Manual dispatch | Just build & push Docker |
-| `build-and-push.yaml` | CI builds | Tags & PRs | Auto-build on tags/PRs |
-| `release.yaml` | GitHub releases | Tag push | Create GitHub release |
-| `helm-publish.yaml` | Helm chart only | Tags | Publish Helm chart |
+| Workflow | File | Purpose | When to Use |
+|----------|------|---------|-------------|
+| **Unified Release** | `release-unified.yaml` | Full release process | New versions |
+| **Quick Fix Build** | `quick-fix.yaml` | Docker build only | Hotfixes |
+| **Build and Push** | `build-and-push.yaml` | CI/CD automation | PRs & tags |
 
-## Common Tasks
+## Examples
 
 ### Release a new version
 ```bash
-# Option 1: Use GitHub UI
+# Via GitHub UI (Recommended):
 # Go to Actions → Unified Release → Run workflow
 
-# Option 2: Use GitHub CLI
-gh workflow run release-unified.yaml -f version=0.1.25 -f release_type=patch
+# Via GitHub CLI:
+gh workflow run release-unified.yaml -f version=0.2.1
+# OR auto-increment:
+gh workflow run release-unified.yaml -f release_type=patch
 ```
 
 ### Push a quick fix
 ```bash
-# Use GitHub UI: Actions → Quick Fix Build → Run workflow
-# Or:
+# Via GitHub UI:
+# Go to Actions → Quick Fix Build → Run workflow
+
+# Via GitHub CLI:
 gh workflow run quick-fix.yaml -f tag=hotfix-1
 ```
 
-### Check build status
+### Check workflow status
 ```bash
-gh run list --workflow=release-unified.yaml
+# List all recent runs
+gh run list --limit 5
+
+# Watch a specific workflow
+gh run watch
 ```
 
 ## Version Strategy
 
 - **Major** (1.0.0): Breaking changes
 - **Minor** (0.2.0): New features
-- **Patch** (0.1.25): Bug fixes
+- **Patch** (0.2.1): Bug fixes
 
-## Old Pipeline Issues (Now Fixed!)
+## What We Fixed
 
-❌ **REMOVED**: Auto-version-bump with `[skip ci]` that prevented Docker builds
-❌ **REMOVED**: Disconnected workflows requiring manual tag juggling
-❌ **REMOVED**: Complex multi-step process for releases
+### Before (Nightmare 😱)
+- Auto-version-bump with `[skip ci]` prevented Docker builds
+- 6+ disconnected workflows
+- Manual tag deletion and re-pushing
+- Version conflicts everywhere
 
-✅ **NEW**: Single unified workflow that does everything
-✅ **NEW**: Manual control over versions
-✅ **NEW**: Quick fix workflow for emergencies
+### After (Simple! 🎉)
+- **3 total workflows** (down from 6+)
+- **1 button** for complete releases
+- **No more `[skip ci]`** blocking builds
+- **Clear separation** of concerns
