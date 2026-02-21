@@ -20,6 +20,25 @@ spec:
       securityContext:
         fsGroup: 1000
         fsGroupChangePolicy: "OnRootMismatch"
+      {{- if and .Values.ide (eq .Values.ide "antigravity") }}
+      initContainers:
+        - name: setup-userdata
+          image: busybox:latest
+          command: ['sh', '-c']
+          args:
+            - |
+              echo "Setting up userdata directory..."
+              mkdir -p /config/userdata
+              chown 1000:1000 /config/userdata
+              chmod 755 /config/userdata
+              echo "Userdata directory setup complete"
+          volumeMounts:
+            - name: userhome
+              mountPath: /config
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+      {{- end }}
       containers:
         - name: devcontainer
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -151,7 +170,7 @@ spec:
         - name: homeassistant-mcp
           image: "{{ .Values.mcpSidecars.homeassistant.image.repository }}:{{ .Values.mcpSidecars.homeassistant.image.tag }}"
           imagePullPolicy: Always
-          command: ["fastmcp", "run", "ha_mcp.main:app", "--transport", "sse", "--host", "0.0.0.0", "--port", "{{ .Values.mcpSidecars.homeassistant.port }}"]
+          command: ["fastmcp", "run", "--transport", "sse", "--host", "0.0.0.0", "--port", "{{ .Values.mcpSidecars.homeassistant.port }}"]
           ports:
             - name: homeassistant
               containerPort: {{ .Values.mcpSidecars.homeassistant.port }}
