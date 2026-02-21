@@ -86,7 +86,7 @@ mcpSidecars:
     enabled: true
     image:
       repository: ghcr.io/controlplaneio-fluxcd/flux-operator-mcp
-      tag: latest
+      tag: v0.41.1
     port: 8081
     resources:
       requests:
