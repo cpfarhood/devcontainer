@@ -98,6 +98,55 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 5
           {{- end }}
+        {{- if .Values.mcpSidecars.kubernetes.enabled }}
+        - name: kubernetes-mcp
+          image: "{{ .Values.mcpSidecars.kubernetes.image.repository }}:{{ .Values.mcpSidecars.kubernetes.image.tag }}"
+          args:
+            - --port
+            - {{ .Values.mcpSidecars.kubernetes.port | quote }}
+          ports:
+            - containerPort: {{ .Values.mcpSidecars.kubernetes.port }}
+              name: k8s-mcp
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.mcpSidecars.kubernetes.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.mcpSidecars.kubernetes.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.mcpSidecars.kubernetes.resources | nindent 12 }}
+        {{- end }}
+        {{- if .Values.mcpSidecars.flux.enabled }}
+        - name: flux-mcp
+          image: "{{ .Values.mcpSidecars.flux.image.repository }}:{{ .Values.mcpSidecars.flux.image.tag }}"
+          args:
+            - serve
+            - --transport=sse
+            - --port={{ .Values.mcpSidecars.flux.port }}
+          ports:
+            - containerPort: {{ .Values.mcpSidecars.flux.port }}
+              name: flux-mcp
+              protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.mcpSidecars.flux.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.mcpSidecars.flux.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.mcpSidecars.flux.resources | nindent 12 }}
+        {{- end }}
       volumes:
         - name: workspace
           emptyDir: {}

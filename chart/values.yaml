@@ -66,3 +66,32 @@ clusterAccess: none
 # Name of existing Secret containing env vars (GITHUB_TOKEN, VNC_PASSWORD, etc.)
 # Defaults to: devcontainer-{name}-secrets-env
 envSecretName: ""
+
+# MCP server sidecars — run alongside the devcontainer to inherit pod RBAC.
+mcpSidecars:
+  kubernetes:
+    enabled: true
+    image:
+      repository: quay.io/containers/kubernetes_mcp_server
+      tag: latest
+    port: 8080
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+  flux:
+    enabled: true
+    image:
+      repository: ghcr.io/controlplaneio-fluxcd/flux-operator-mcp
+      tag: latest
+    port: 8081
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
