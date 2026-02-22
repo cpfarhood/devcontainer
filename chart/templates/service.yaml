@@ -6,13 +6,13 @@ metadata:
     {{- include "antigravity.labels" . | nindent 4 }}
 spec:
   ports:
-    {{- if ne (.Values.ide | default "vscode") "none" }}
+    {{- if ne (.Values.ide.type | default "vscode") "none" }}
     - port: 5800
       name: vnc-web
       protocol: TCP
       targetPort: vnc-web
     {{- end }}
-    {{- if .Values.ssh }}
+    {{- if .Values.ssh.enabled }}
     - port: 22
       name: ssh
       protocol: TCP
