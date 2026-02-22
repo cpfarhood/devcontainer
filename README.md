@@ -5,8 +5,7 @@
 A containerized cloud development environment with web-based GUI access, featuring:
 - **VSCode or Google Antigravity** via browser-based VNC (port 5800)
 - **SSH access** option (OpenSSH on port 22, additive with any IDE)
-- **Happy Coder** AI assistant backed by Claude
-- **OpenCode** and **Crush** open-source AI coding agents (terminal-based)
+- **Claude Code**, **Happy Coder**, **OpenCode**, and **Crush** AI coding agents (terminal-based)
 - **Automatic GitHub repo cloning** on startup
 - **Persistent home directory** via ReadWriteMany PVC
 - **Kubernetes-native** Helm chart deployment

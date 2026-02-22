@@ -6,8 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The Dev Container is a Docker-based cloud development environment that provides:
 - Web-based GUI IDE (VSCode/Antigravity) via VNC on port 5800
-- Happy Coder AI assistant integration (manual startup)
-- OpenCode and Crush AI coding agents (terminal-based)
+- Claude Code, Happy Coder, OpenCode, and Crush AI coding agents (terminal-based)
 - Automatic GitHub repository cloning on startup
 - Kubernetes-native deployment with persistent home storage
 - MCP (Model Context Protocol) sidecars for AI assistant integrations
@@ -69,7 +68,7 @@ Container start
 
 | File | Purpose |
 |------|---------|
-| `Dockerfile` | Image definition — installs Chrome, Node.js, VSCode, Happy Coder, OpenCode, Crush; creates non-root user (UID 1000) |
+| `Dockerfile` | Image definition — installs Chrome, Node.js, VSCode, Claude Code, Happy Coder, OpenCode, Crush; creates non-root user (UID 1000) |
 | `scripts/init-repo.sh` | Configures git credentials, clones GitHub repo |
 | `scripts/startapp.sh` | Calls init-repo.sh then opens VSCode in the workspace |
 | `chart/` | Helm chart for Kubernetes deployment |
