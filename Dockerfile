@@ -64,6 +64,18 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
 # Install Happy Coder and Claude Code globally
 RUN npm install -g happy-coder @anthropic-ai/claude-code
 
+# Install OpenCode AI coding agent
+RUN OPENCODE_VERSION=$(curl -sL https://api.github.com/repos/opencode-ai/opencode/releases/latest | jq -r '.tag_name') && \
+    curl -fsSL "https://github.com/opencode-ai/opencode/releases/download/${OPENCODE_VERSION}/opencode-linux-x86_64.tar.gz" | \
+    tar -xz -C /usr/local/bin opencode && \
+    chmod +x /usr/local/bin/opencode
+
+# Install Crush AI coding agent (OpenCode successor by Charm)
+RUN CRUSH_VERSION=$(curl -sL https://api.github.com/repos/charmbracelet/crush/releases/latest | jq -r '.tag_name' | sed 's/^v//') && \
+    curl -fsSL "https://github.com/charmbracelet/crush/releases/download/v${CRUSH_VERSION}/crush_${CRUSH_VERSION}_Linux_x86_64.tar.gz" | \
+    tar -xz --strip-components=1 -C /usr/local/bin "crush_${CRUSH_VERSION}_Linux_x86_64/crush" && \
+    chmod +x /usr/local/bin/crush
+
 # Install VSCode
 RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/packages.microsoft.gpg && \
     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list && \
