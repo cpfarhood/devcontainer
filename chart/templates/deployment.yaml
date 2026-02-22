@@ -200,43 +200,11 @@ spec:
           resources:
             {{- toYaml .Values.mcp.sidecars.homeassistant.resources | nindent 12 }}
         {{- end }}
-        {{- if .Values.mcp.sidecars.github.enabled }}
-        - name: github-mcp
-          image: "{{ .Values.mcp.sidecars.github.image.repository }}:{{ .Values.mcp.sidecars.github.image.tag }}"
-          imagePullPolicy: Always
-          args:
-            - --sse
-            - --port={{ .Values.mcp.sidecars.github.port }}
-          ports:
-            - name: github
-              containerPort: {{ .Values.mcp.sidecars.github.port }}
-          env:
-            - name: GITHUB_PERSONAL_ACCESS_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "antigravity.envSecretName" . }}
-                  key: GITHUB_TOKEN
-                  optional: true
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.mcp.sidecars.github.port }}
-            initialDelaySeconds: 10
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.mcp.sidecars.github.port }}
-            initialDelaySeconds: 5
-            periodSeconds: 5
-          resources:
-            {{- toYaml .Values.mcp.sidecars.github.resources | nindent 12 }}
-        {{- end }}
         {{- if .Values.mcp.sidecars.pgtuner.enabled }}
         - name: pgtuner-mcp
           image: "{{ .Values.mcp.sidecars.pgtuner.image.repository }}:{{ .Values.mcp.sidecars.pgtuner.image.tag }}"
           imagePullPolicy: Always
-          command: ["python", "-m", "pgtuner_mcp", "--transport", "sse", "--port", "{{ .Values.mcp.sidecars.pgtuner.port }}"]
+          command: ["python", "-m", "pgtuner_mcp", "--mode", "sse", "--host", "0.0.0.0", "--port", "{{ .Values.mcp.sidecars.pgtuner.port }}"]
           ports:
             - name: pgtuner
               containerPort: {{ .Values.mcp.sidecars.pgtuner.port }}

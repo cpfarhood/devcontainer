@@ -177,9 +177,6 @@
             "homeassistant": {
               "$ref": "#/$defs/mcpSidecar"
             },
-            "github": {
-              "$ref": "#/$defs/mcpSidecar"
-            },
             "pgtuner": {
               "$ref": "#/$defs/mcpSidecar"
             },

@@ -50,7 +50,7 @@ The secret is picked up automatically via `envFrom`. Keys recognised:
 | `SSH_AUTHORIZED_KEYS` | Public key(s) for SSH access (required when `ssh: true`) |
 | `HOMEASSISTANT_URL` | Home Assistant URL (required when `mcpSidecars.homeassistant.enabled: true`) |
 | `HOMEASSISTANT_TOKEN` | Home Assistant long-lived access token (required when `mcpSidecars.homeassistant.enabled: true`) |
-| `DATABASE_URI` | PostgreSQL connection string (required when `mcpSidecars.pgtuner.enabled: true`) |
+| `DATABASE_URI` | PostgreSQL connection string (required when `mcp.sidecars.pgtuner.enabled: true`) |
 | `PGTUNER_EXCLUDE_USERIDS` | Comma-separated PostgreSQL user OIDs to exclude from monitoring (optional) |
 
 ```bash
@@ -200,16 +200,16 @@ The devcontainer includes MCP (Model Context Protocol) servers as sidecar contai
 |---------|---------|---------|
 | `mcp.sidecars.kubernetes.enabled` | `true` | Kubernetes API access via MCP |
 | `mcp.sidecars.flux.enabled` | `true` | Flux GitOps operations via MCP |
-| `mcp.sidecars.github.enabled` | `false` | GitHub API access via MCP (DISABLED: archived image) |
 | `mcp.sidecars.homeassistant.enabled` | `false` | Home Assistant smart home control via MCP |
 | `mcp.sidecars.pgtuner.enabled` | `false` | PostgreSQL performance tuning and analysis via MCP |
 | `mcp.sidecars.playwright.enabled` | `true` | Browser automation and web testing via MCP |
 
 **Notes:**
+- GitHub MCP is accessed via the Copilot API (`https://api.githubcopilot.com/mcp/`), not as a sidecar
 - Kubernetes and Flux sidecars require `clusterAccess` != `none` to be deployed (automatically disabled when no cluster access)
 - Kubernetes and Flux sidecars inherit the pod's ServiceAccount RBAC permissions (controlled by `clusterAccess`)
-- Home Assistant sidecar requires `homeassistant-url` and `homeassistant-token` in the env secret
-- PostgreSQL tuner sidecar requires `database-uri` in the env secret (PostgreSQL connection string)
+- Home Assistant sidecar requires `HOMEASSISTANT_URL` and `HOMEASSISTANT_TOKEN` in the env secret
+- PostgreSQL tuner sidecar requires `DATABASE_URI` in the env secret (PostgreSQL connection string)
 - Playwright sidecar provides browser automation and web testing capabilities
 
 **Disable MCP sidecars:**
@@ -309,7 +309,7 @@ mcp:
   playwright:
     enabled: true
     image:
-      repository: microsoft/playwright-mcp
+      repository: mcr.microsoft.com/playwright/mcp
       tag: latest
     port: 8086
     resources:

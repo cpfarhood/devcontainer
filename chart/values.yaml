@@ -123,21 +123,6 @@ mcp:
           memory: "256Mi"
           cpu: "500m"
 
-    # GitHub API access (DISABLED: archived image)
-    github:
-      enabled: false
-      image:
-        repository: ghcr.io/modelcontextprotocol/servers/github
-        tag: latest
-      port: 8088
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "50m"
-        limits:
-          memory: "256Mi"
-          cpu: "500m"
-
     # PostgreSQL performance tuning
     pgtuner:
       enabled: false  # Requires DATABASE_URI in secrets
@@ -157,7 +142,7 @@ mcp:
     playwright:
       enabled: true
       image:
-        repository: microsoft/playwright-mcp
+        repository: mcr.microsoft.com/playwright/mcp
         tag: latest
       port: 8086
       resources:
