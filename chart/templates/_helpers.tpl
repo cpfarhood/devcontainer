@@ -1,28 +1,28 @@
 {{/*
 Resource name prefix: devcontainer-{name}
 */}}
-{{- define "antigravity.fullname" -}}
+{{- define "devcontainer.fullname" -}}
 {{- printf "devcontainer-%s" .Values.name }}
 {{- end }}
 
 {{/*
 PVC name: userhome-{name}
 */}}
-{{- define "antigravity.pvcName" -}}
+{{- define "devcontainer.pvcName" -}}
 {{- printf "userhome-%s" .Values.name }}
 {{- end }}
 
 {{/*
 Secret name for env vars, default to devcontainer-{name}-secrets-env
 */}}
-{{- define "antigravity.envSecretName" -}}
+{{- define "devcontainer.envSecretName" -}}
 {{- .Values.envSecretName | default (printf "devcontainer-%s-secrets-env" .Values.name) }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "antigravity.labels" -}}
+{{- define "devcontainer.labels" -}}
 app: devcontainer
 instance: {{ .Values.name }}
 {{- end }}
@@ -30,7 +30,7 @@ instance: {{ .Values.name }}
 {{/*
 Smart resource sizing based on enabled features
 */}}
-{{- define "antigravity.smartResources" -}}
+{{- define "devcontainer.smartResources" -}}
 {{- $baseMemory := "2Gi" }}
 {{- $baseCpu := "1000m" }}
 {{- $limitMemory := "8Gi" }}
@@ -59,7 +59,7 @@ limits:
 {{/*
 Auto-detect environment type and set smart defaults
 */}}
-{{- define "antigravity.smartDefaults" -}}
+{{- define "devcontainer.smartDefaults" -}}
 {{- $isDev := or (contains "dev" .Values.name) (contains "test" .Values.name) (contains "local" .Values.name) }}
 {{- $isProd := or (contains "prod" .Values.name) (contains "production" .Values.name) }}
 {{- $isTeam := or (contains "team" .Values.name) (contains "shared" .Values.name) }}
@@ -79,7 +79,7 @@ team: true
 {{/*
 Smart MCP sidecar selection based on cluster access
 */}}
-{{- define "antigravity.mcpDefaults" -}}
+{{- define "devcontainer.mcpDefaults" -}}
 {{- if eq .Values.clusterAccess "none" }}
   {{/* No cluster access - disable k8s/flux sidecars */}}
   kubernetes:

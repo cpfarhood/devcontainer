@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "antigravity.fullname" . }}
+  name: {{ include "devcontainer.fullname" . }}
   labels:
-    {{- include "antigravity.labels" . | nindent 4 }}
+    {{- include "devcontainer.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "antigravity.labels" . | nindent 6 }}
+      {{- include "devcontainer.labels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "antigravity.labels" . | nindent 8 }}
+        {{- include "devcontainer.labels" . | nindent 8 }}
     spec:
       {{- if ne (.Values.clusterAccess | default "none") "none" }}
-      serviceAccountName: {{ include "antigravity.fullname" . }}
+      serviceAccountName: {{ include "devcontainer.fullname" . }}
       {{- end }}
       securityContext:
         fsGroup: 1000
@@ -81,7 +81,7 @@ spec:
               value: {{ .Values.githubRepo | quote }}
           envFrom:
             - secretRef:
-                name: {{ include "antigravity.envSecretName" . }}
+                name: {{ include "devcontainer.envSecretName" . }}
                 optional: true
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
@@ -178,13 +178,13 @@ spec:
             - name: HOMEASSISTANT_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "antigravity.envSecretName" . }}
+                  name: {{ include "devcontainer.envSecretName" . }}
                   key: HOMEASSISTANT_URL
                   optional: true
             - name: HOMEASSISTANT_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "antigravity.envSecretName" . }}
+                  name: {{ include "devcontainer.envSecretName" . }}
                   key: HOMEASSISTANT_TOKEN
                   optional: true
           livenessProbe:
@@ -212,13 +212,13 @@ spec:
             - name: DATABASE_URI
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "antigravity.envSecretName" . }}
+                  name: {{ include "devcontainer.envSecretName" . }}
                   key: DATABASE_URI
                   optional: true
             - name: PGTUNER_EXCLUDE_USERIDS
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "antigravity.envSecretName" . }}
+                  name: {{ include "devcontainer.envSecretName" . }}
                   key: PGTUNER_EXCLUDE_USERIDS
                   optional: true
           livenessProbe:
@@ -271,4 +271,4 @@ spec:
             sizeLimit: {{ .Values.shm.sizeLimit }}
         - name: userhome
           persistentVolumeClaim:
-            claimName: {{ include "antigravity.pvcName" . }}
+            claimName: {{ include "devcontainer.pvcName" . }}

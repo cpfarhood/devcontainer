@@ -1,7 +1,7 @@
 {{- $access := .Values.clusterAccess | default "none" }}
-{{- $name   := include "antigravity.fullname" . }}
+{{- $name   := include "devcontainer.fullname" . }}
 {{- $ns     := .Release.Namespace }}
-{{- $labels := include "antigravity.labels" . }}
+{{- $labels := include "devcontainer.labels" . }}
 
 {{- if ne $access "none" }}
 ---
