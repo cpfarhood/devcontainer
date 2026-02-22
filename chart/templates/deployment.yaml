@@ -245,6 +245,8 @@ spec:
             - --browser
             - chromium
             - --no-sandbox
+            - --host
+            - 0.0.0.0
             - --port
             - {{ .Values.mcp.sidecars.playwright.port | quote }}
           ports:
