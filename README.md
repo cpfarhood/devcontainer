@@ -22,10 +22,10 @@ The secret is picked up automatically via `envFrom`. Keys recognised:
 | `VNC_PASSWORD` | Password for the VNC web UI |
 | `ANTHROPIC_API_KEY` | API key — alternative to browser-based Claude login |
 | `SSH_AUTHORIZED_KEYS` | Public key(s) for SSH access (required when `ssh: true`) |
-| `homeassistant-url` | Home Assistant URL (required when `mcpSidecars.homeassistant.enabled: true`) |
-| `homeassistant-token` | Home Assistant long-lived access token (required when `mcpSidecars.homeassistant.enabled: true`) |
-| `database-uri` | PostgreSQL connection string (required when `mcpSidecars.pgtuner.enabled: true`) |
-| `pgtuner-exclude-userids` | Comma-separated PostgreSQL user OIDs to exclude from monitoring (optional) |
+| `HOMEASSISTANT_URL` | Home Assistant URL (required when `mcpSidecars.homeassistant.enabled: true`) |
+| `HOMEASSISTANT_TOKEN` | Home Assistant long-lived access token (required when `mcpSidecars.homeassistant.enabled: true`) |
+| `DATABASE_URI` | PostgreSQL connection string (required when `mcpSidecars.pgtuner.enabled: true`) |
+| `PGTUNER_EXCLUDE_USERIDS` | Comma-separated PostgreSQL user OIDs to exclude from monitoring (optional) |
 
 ```bash
 kubectl create secret generic devcontainer-mydev-secrets-env \
@@ -196,8 +196,8 @@ helm install mydev ./chart \
 # Create secret with Home Assistant credentials
 kubectl create secret generic devcontainer-mydev-secrets-env \
   --from-literal=GITHUB_TOKEN='ghp_...' \
-  --from-literal=homeassistant-url='http://homeassistant.local:8123' \
-  --from-literal=homeassistant-token='your_long_lived_access_token'
+  --from-literal=HOMEASSISTANT_URL='http://homeassistant.local:8123' \
+  --from-literal=HOMEASSISTANT_TOKEN='your_long_lived_access_token'
 
 # Deploy with Home Assistant MCP enabled
 helm install mydev ./chart \
@@ -211,7 +211,7 @@ helm install mydev ./chart \
 # Create secret with PostgreSQL connection string
 kubectl create secret generic devcontainer-mydev-secrets-env \
   --from-literal=GITHUB_TOKEN='ghp_...' \
-  --from-literal=database-uri='postgresql://user:password@postgres.example.com:5432/dbname'
+  --from-literal=DATABASE_URI='postgresql://user:password@postgres.example.com:5432/dbname'
 
 # Deploy with PostgreSQL tuner MCP enabled
 helm install mydev ./chart \

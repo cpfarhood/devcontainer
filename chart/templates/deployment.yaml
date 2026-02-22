@@ -179,13 +179,13 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "antigravity.envSecretName" . }}
-                  key: homeassistant-url
+                  key: HOMEASSISTANT_URL
                   optional: true
             - name: HOMEASSISTANT_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ include "antigravity.envSecretName" . }}
-                  key: homeassistant-token
+                  key: HOMEASSISTANT_TOKEN
                   optional: true
           livenessProbe:
             tcpSocket:
@@ -215,7 +215,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "antigravity.envSecretName" . }}
-                  key: github-token
+                  key: GITHUB_TOKEN
                   optional: true
           livenessProbe:
             httpGet:
@@ -245,13 +245,13 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "antigravity.envSecretName" . }}
-                  key: database-uri
+                  key: DATABASE_URI
                   optional: true
             - name: PGTUNER_EXCLUDE_USERIDS
               valueFrom:
                 secretKeyRef:
                   name: {{ include "antigravity.envSecretName" . }}
-                  key: pgtuner-exclude-userids
+                  key: PGTUNER_EXCLUDE_USERIDS
                   optional: true
           livenessProbe:
             tcpSocket:
