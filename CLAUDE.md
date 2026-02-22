@@ -90,13 +90,16 @@ MCP (Model Context Protocol) servers run as sidecar containers in the pod, enabl
 | `flux-mcp` | `ghcr.io/controlplaneio-fluxcd/flux-operator-mcp` | v0.41.1 | 8081 | `http://localhost:8081/sse` | Enabled |
 | `github-mcp` | `ghcr.io/modelcontextprotocol/servers/github` | latest | 8088 | `http://localhost:8088/sse` | Enabled |
 | `homeassistant-mcp` | `ghcr.io/homeassistant-ai/ha-mcp` | 6.7.1 | 8087 | `http://localhost:8087/sse` | Disabled |
+| `pgtuner-mcp` | `dog830228/pgtuner_mcp` | latest | 8085 | `http://localhost:8085/sse` | Disabled |
+| `playwright-mcp` | `microsoft/playwright-mcp` | latest | 8086 | `http://localhost:8086/sse` | Enabled |
 
 **Note:**
 - Kubernetes and Flux sidecars require `clusterAccess` != `none` to be deployed (they need RBAC permissions)
 - Kubernetes and Flux sidecars inherit the pod's ServiceAccount RBAC permissions
 - GitHub sidecar uses `GITHUB_TOKEN` from the env secret (same token used for repo cloning)
 - Home Assistant sidecar requires `HOMEASSISTANT_URL` and `HOMEASSISTANT_TOKEN` in the env secret
-- Playwright MCP remains an external service
+- PostgreSQL tuner sidecar requires `DATABASE_URI` in the env secret (PostgreSQL connection string)
+- Playwright sidecar provides browser automation and web testing capabilities
 
 #### Enabling/Disabling MCP Servers
 
@@ -113,6 +116,10 @@ mcpSidecars:
     enabled: false
   homeassistant:
     enabled: false
+  pgtuner:
+    enabled: false
+  playwright:
+    enabled: false
 
 # Or selectively enable/disable
 mcpSidecars:
@@ -124,6 +131,10 @@ mcpSidecars:
     enabled: true  # Keep GitHub MCP enabled (uses GITHUB_TOKEN)
   homeassistant:
     enabled: true  # Enable Home Assistant MCP (requires secrets)
+  pgtuner:
+    enabled: true  # Enable PostgreSQL tuner MCP (requires DATABASE_URI)
+  playwright:
+    enabled: true  # Enable Playwright MCP for browser automation
 ```
 
 When deploying via Helm:

@@ -17,7 +17,7 @@
     },
     "playwright": {
       "type": "sse",
-      "url": "http://playwright-mcp.playwright.svc.cluster.local:3000/sse"
+      "url": "http://localhost:8086/sse"
     },
     "pgtuner": {
       "type": "sse",

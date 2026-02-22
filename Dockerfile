@@ -1,7 +1,7 @@
 FROM jlesage/baseimage-gui:ubuntu-22.04-v4
 
 # Set environment variables
-ENV APP_NAME="Antigravity Dev Container" \
+ENV APP_NAME="Dev Container" \
     KEEP_APP_RUNNING=1 \
     DISPLAY_WIDTH=1920 \
     DISPLAY_HEIGHT=1080 \
@@ -119,4 +119,4 @@ ENV HOME=/config/userdata \
 EXPOSE 5800
 
 # Set app name for baseimage-gui
-RUN set-cont-env APP_NAME "Antigravity"
+RUN set-cont-env APP_NAME "Dev Container"

@@ -2,7 +2,7 @@
 # Start application script for baseimage-gui
 set -e
 
-echo "=== Starting Antigravity Dev Container ==="
+echo "=== Starting Dev Container ==="
 
 # Initialize repository and Happy Coder
 /usr/local/bin/init-repo

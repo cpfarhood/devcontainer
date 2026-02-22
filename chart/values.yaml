@@ -125,7 +125,7 @@ mcpSidecars:
     enabled: false  # Disabled by default, requires DATABASE_URI in secrets
     image:
       repository: dog830228/pgtuner_mcp
-      tag: latest  # TODO: pin to specific version once stable release available
+      tag: latest
     port: 8085
     resources:
       requests:
@@ -134,3 +134,16 @@ mcpSidecars:
       limits:
         memory: "256Mi"
         cpu: "500m"
+  playwright:
+    enabled: true  # Enabled by default for browser automation
+    image:
+      repository: microsoft/playwright-mcp
+      tag: latest
+    port: 8086
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "1000m"

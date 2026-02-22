@@ -266,6 +266,34 @@ spec:
           resources:
             {{- toYaml .Values.mcpSidecars.pgtuner.resources | nindent 12 }}
         {{- end }}
+        {{- if .Values.mcpSidecars.playwright.enabled }}
+        - name: playwright-mcp
+          image: "{{ .Values.mcpSidecars.playwright.image.repository }}:{{ .Values.mcpSidecars.playwright.image.tag }}"
+          imagePullPolicy: Always
+          args:
+            - --transport
+            - sse
+            - --port
+            - {{ .Values.mcpSidecars.playwright.port | quote }}
+          ports:
+            - name: playwright
+              containerPort: {{ .Values.mcpSidecars.playwright.port }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.mcpSidecars.playwright.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.mcpSidecars.playwright.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.mcpSidecars.playwright.resources | nindent 12 }}
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+        {{- end }}
       volumes:
         - name: workspace
           emptyDir: {}

@@ -1,4 +1,4 @@
-# Antigravity Dev Container
+# Dev Container
 
 ![Build and Push](https://github.com/cpfarhood/devcontainer/actions/workflows/build-and-push.yaml/badge.svg)
 
@@ -24,6 +24,8 @@ The secret is picked up automatically via `envFrom`. Keys recognised:
 | `SSH_AUTHORIZED_KEYS` | Public key(s) for SSH access (required when `ssh: true`) |
 | `homeassistant-url` | Home Assistant URL (required when `mcpSidecars.homeassistant.enabled: true`) |
 | `homeassistant-token` | Home Assistant long-lived access token (required when `mcpSidecars.homeassistant.enabled: true`) |
+| `database-uri` | PostgreSQL connection string (required when `mcpSidecars.pgtuner.enabled: true`) |
+| `pgtuner-exclude-userids` | Comma-separated PostgreSQL user OIDs to exclude from monitoring (optional) |
 
 ```bash
 kubectl create secret generic devcontainer-mydev-secrets-env \
@@ -160,21 +162,27 @@ The devcontainer includes MCP (Model Context Protocol) servers as sidecar contai
 |---------|---------|---------|
 | `mcpSidecars.kubernetes.enabled` | `true` | Kubernetes API access via MCP |
 | `mcpSidecars.flux.enabled` | `true` | Flux GitOps operations via MCP |
+| `mcpSidecars.github.enabled` | `false` | GitHub API access via MCP (DISABLED: archived image) |
 | `mcpSidecars.homeassistant.enabled` | `false` | Home Assistant smart home control via MCP |
+| `mcpSidecars.pgtuner.enabled` | `false` | PostgreSQL performance tuning and analysis via MCP |
+| `mcpSidecars.playwright.enabled` | `true` | Browser automation and web testing via MCP |
 
 **Notes:**
 - Kubernetes and Flux sidecars require `clusterAccess` != `none` to be deployed (automatically disabled when no cluster access)
 - Kubernetes and Flux sidecars inherit the pod's ServiceAccount RBAC permissions (controlled by `clusterAccess`)
-- Home Assistant sidecar requires additional configuration (see below)
+- Home Assistant sidecar requires `homeassistant-url` and `homeassistant-token` in the env secret
+- PostgreSQL tuner sidecar requires `database-uri` in the env secret (PostgreSQL connection string)
+- Playwright sidecar provides browser automation and web testing capabilities
 
 **Disable MCP sidecars:**
 ```bash
-# Disable both sidecars
+# Disable multiple sidecars
 helm install mydev ./chart \
   --set name=mydev \
   --set githubRepo=https://github.com/youruser/yourrepo \
   --set mcpSidecars.kubernetes.enabled=false \
-  --set mcpSidecars.flux.enabled=false
+  --set mcpSidecars.flux.enabled=false \
+  --set mcpSidecars.playwright.enabled=false
 
 # Or selectively disable
 helm install mydev ./chart \
@@ -198,6 +206,20 @@ helm install mydev ./chart \
   --set mcpSidecars.homeassistant.enabled=true
 ```
 
+**Enable PostgreSQL Tuner MCP:**
+```bash
+# Create secret with PostgreSQL connection string
+kubectl create secret generic devcontainer-mydev-secrets-env \
+  --from-literal=GITHUB_TOKEN='ghp_...' \
+  --from-literal=database-uri='postgresql://user:password@postgres.example.com:5432/dbname'
+
+# Deploy with PostgreSQL tuner MCP enabled
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set mcpSidecars.pgtuner.enabled=true
+```
+
 **Custom MCP configuration:**
 ```yaml
 # values.yaml override
@@ -206,7 +228,7 @@ mcpSidecars:
     enabled: true
     image:
       repository: quay.io/containers/kubernetes_mcp_server
-      tag: latest
+      tag: v0.0.57
     port: 8080
     resources:
       requests:
@@ -217,19 +239,47 @@ mcpSidecars:
         cpu: "500m"
   flux:
     enabled: false  # Disabled in this example
+  github:
+    enabled: false  # Disabled by default (archived image)
   homeassistant:
     enabled: true
     image:
       repository: ghcr.io/homeassistant-ai/ha-mcp
-      tag: 6.7.1  # Override the pinned version if needed
+      tag: stable
     port: 8087
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+  pgtuner:
+    enabled: true
+    image:
+      repository: dog830228/pgtuner_mcp
+      tag: latest
+    port: 8085
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+  playwright:
+    enabled: true
+    image:
+      repository: microsoft/playwright-mcp
+      tag: latest
+    port: 8086
     resources:
       requests:
         memory: "128Mi"
         cpu: "100m"
       limits:
         memory: "512Mi"
-        cpu: "500m"
+        cpu: "1000m"
 ```
 
 ### Display and resources
