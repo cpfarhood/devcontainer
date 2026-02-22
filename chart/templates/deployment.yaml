@@ -238,9 +238,13 @@ spec:
         - name: playwright-mcp
           image: "{{ .Values.mcp.sidecars.playwright.image.repository }}:{{ .Values.mcp.sidecars.playwright.image.tag }}"
           imagePullPolicy: Always
+          command: ["node"]
           args:
-            - --transport
-            - sse
+            - cli.js
+            - --headless
+            - --browser
+            - chromium
+            - --no-sandbox
             - --port
             - {{ .Values.mcp.sidecars.playwright.port | quote }}
           ports:
