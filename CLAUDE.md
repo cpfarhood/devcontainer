@@ -60,7 +60,6 @@ Container start
     → scripts/init-repo.sh
       → Configure git user & credentials
       → Clone GITHUB_REPO (if set)
-      → Start Happy Coder
     → Launch VSCode as user `user` in /workspace
 ```
 
@@ -69,7 +68,7 @@ Container start
 | File | Purpose |
 |------|---------|
 | `Dockerfile` | Image definition — installs Chrome, Node.js, VSCode, Happy Coder; creates non-root user (UID 1000) |
-| `scripts/init-repo.sh` | Configures git credentials, clones GitHub repo, starts Happy Coder background service |
+| `scripts/init-repo.sh` | Configures git credentials, clones GitHub repo |
 | `scripts/startapp.sh` | Calls init-repo.sh then opens VSCode in the workspace |
 | `chart/` | Helm chart for Kubernetes deployment |
 | `chart/templates/deployment.yaml` | Deployment spec — main container + MCP sidecar containers |

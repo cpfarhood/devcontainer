@@ -1,5 +1,5 @@
 #!/bin/bash
-# Initialize repository and start Happy Coder
+# Initialize repository
 set -e
 
 echo "=== Repository Initialization ==="
@@ -102,18 +102,6 @@ chown -R "$RUN_UID:$RUN_GID" "$WORKSPACE_DIR"
 mkdir -p "$HOME"
 chown "$RUN_UID:$RUN_GID" "$HOME"
 
-# Start Happy Coder daemon. startapp.sh already runs as the app user (UID 1000),
-# so no sudo needed — Happy/Claude Code will find credentials in the correct home dir.
-echo "Starting Happy Coder..."
-
-# Remove stale lock file. HAPPY_HOME_DIR lives on the home PVC so it survives
-# pod restarts — without this cleanup the daemon refuses to start after a crash.
-rm -f "${HAPPY_HOME_DIR:-$HOME/.happy}/daemon.state.json.lock"
-
-cd "$WORKSPACE_DIR"
-happy daemon start || echo "Happy Coder daemon failed to start, continuing anyway..."
-
-echo "Happy Coder daemon started"
 
 # Export workspace directory for startapp.sh
 echo "$WORKSPACE_DIR" > /tmp/workspace-dir

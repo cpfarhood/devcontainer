@@ -313,8 +313,6 @@ Container start
   → /startapp.sh  (runs as app user, UID 1000)
       → init-repo.sh
           → clone / pull GITHUB_REPO into /workspace/{repo}
-          → rm daemon.state.json.lock    — clear stale Happy lock
-          → happy daemon start           — starts Happy Coder background daemon
       → IDE=vscode:      code --new-window --wait /workspace/{repo}
         IDE=antigravity:  antigravity --no-sandbox --user-data-dir ~/.config/antigravity ... /workspace/{repo}
         IDE=none:         sleep infinity
@@ -328,23 +326,28 @@ Container start
 | `/home` | ReadWriteMany PVC (`userhome-{name}`) | Survives pod restarts — stores Claude credentials, dotfiles, git config |
 | `/workspace` | `emptyDir` | Ephemeral — repo is re-cloned on each pod start |
 
-Happy Coder's runtime state (`HAPPY_HOME_DIR`) is kept in `/home/user/.happy` on the persistent home PVC, so auth credentials and settings survive pod restarts. A stale lock file (`daemon.state.json.lock`) is removed automatically on each startup.
+Happy Coder's runtime state (`HAPPY_HOME_DIR`) is kept in `/home/user/.happy` on the persistent home PVC, so auth credentials and settings survive pod restarts when manually started.
 
 ---
 
 ## Troubleshooting
 
-### Happy Coder daemon not starting
+### Happy Coder (manual startup)
+
+Happy daemon is not started automatically. Launch it manually when needed:
 
 ```bash
+# Start Happy Coder daemon manually
+happy daemon start
+
 # Check daemon status
 happy daemon status
 
-# Start manually (also clears any stale lock)
-happy daemon start
-
 # View daemon logs
 ls ~/.happy/logs/
+
+# Stop daemon if needed
+happy daemon stop
 ```
 
 ### Claude not authenticated

@@ -4,7 +4,7 @@ set -e
 
 echo "=== Starting Dev Container ==="
 
-# Initialize repository and Happy Coder
+# Initialize repository
 /usr/local/bin/init-repo
 
 # Get workspace directory
