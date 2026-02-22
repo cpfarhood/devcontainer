@@ -174,8 +174,7 @@ helm install my-devcontainer ./chart -f custom-values.yaml
 
 ### CI/CD
 
-- **`build-and-push.yaml`** — Builds and pushes to GHCR on every push to `main`, version tags (`v*`), and PRs. Tags: `latest` (main), semver, branch name, commit SHA.
-- **`release.yaml`** — Creates a GitHub Release with docker pull instructions when a version tag is pushed.
+- **`build-and-push.yaml`** — Builds and pushes to GHCR on every push to `main`, version tags (`v*`), and PRs. For version tags, also creates GitHub Release with Helm chart after Docker build completes. Tags: `latest` (main), semver, branch name, commit SHA.
 - **`dependabot.yml`** — Weekly updates for GitHub Actions and Docker base image.
 
 Image registry: `ghcr.io/cpfarhood/devcontainer`
