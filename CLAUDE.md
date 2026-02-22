@@ -4,11 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Antigravity is a Docker-based cloud development environment that provides:
+The Dev Container is a Docker-based cloud development environment that provides:
 - Web-based GUI IDE (VSCode/Antigravity) via VNC on port 5800
-- Happy Coder AI assistant integration
+- Happy Coder AI assistant integration (manual startup)
 - Automatic GitHub repository cloning on startup
 - Kubernetes-native deployment with persistent home storage
+- MCP (Model Context Protocol) sidecars for AI assistant integrations
 
 The stack is primarily **Bash scripts + YAML** — there is no Node.js package, compiled language, or test framework.
 
@@ -87,8 +88,8 @@ MCP (Model Context Protocol) servers run as sidecar containers in the pod, enabl
 |---------|-------|---------|------|----------|---------|
 | `kubernetes-mcp` | `quay.io/containers/kubernetes_mcp_server` | v0.0.57 | 8080 | `http://localhost:8080/sse` | Enabled |
 | `flux-mcp` | `ghcr.io/controlplaneio-fluxcd/flux-operator-mcp` | v0.41.1 | 8081 | `http://localhost:8081/sse` | Enabled |
-| `github-mcp` | `ghcr.io/modelcontextprotocol/servers/github` | latest | 8088 | `http://localhost:8088/sse` | Enabled |
-| `homeassistant-mcp` | `ghcr.io/homeassistant-ai/ha-mcp` | 6.7.1 | 8087 | `http://localhost:8087/sse` | Disabled |
+| `github-mcp` | `ghcr.io/modelcontextprotocol/servers/github` | latest | 8088 | `http://localhost:8088/sse` | Disabled |
+| `homeassistant-mcp` | `ghcr.io/homeassistant-ai/ha-mcp` | stable | 8087 | `http://localhost:8087/sse` | Disabled |
 | `pgtuner-mcp` | `dog830228/pgtuner_mcp` | latest | 8085 | `http://localhost:8085/sse` | Disabled |
 | `playwright-mcp` | `microsoft/playwright-mcp` | latest | 8086 | `http://localhost:8086/sse` | Enabled |
 
@@ -106,7 +107,8 @@ To control MCP sidecars, set the `enabled` flag in your values override:
 
 ```yaml
 # Disable all MCP sidecars
-mcpSidecars:
+mcp:
+  sidecars:
   kubernetes:
     enabled: false
   flux:
@@ -121,7 +123,8 @@ mcpSidecars:
     enabled: false
 
 # Or selectively enable/disable
-mcpSidecars:
+mcp:
+  sidecars:
   kubernetes:
     enabled: true  # Keep Kubernetes MCP enabled
   flux:
@@ -138,10 +141,18 @@ mcpSidecars:
 
 When deploying via Helm:
 ```bash
-# Using --set flag
-helm install my-devcontainer ./chart --set mcpSidecars.kubernetes.enabled=false --set mcpSidecars.flux.enabled=false
+# Quick start (recommended)
+cp chart/values-quickstart.yaml my-values.yaml
+# Edit name and githubRepo in my-values.yaml
+helm install my-devcontainer ./chart -f my-values.yaml
 
-# Or with a values file
+# Using --set flags
+helm install my-devcontainer ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/user/repo \
+  --set mcp.sidecars.kubernetes.enabled=false
+
+# Full customization
 helm install my-devcontainer ./chart -f custom-values.yaml
 ```
 

@@ -12,6 +12,32 @@ A containerized cloud development environment with web-based GUI access, featuri
 
 ## Quick Start
 
+### Option A: Quickstart (Recommended)
+
+For 80% of users, use the simplified quickstart values:
+
+```bash
+# Copy and customize the quickstart template
+cp chart/values-quickstart.yaml my-values.yaml
+
+# Edit my-values.yaml to set your name and repository:
+# name: mydev
+# githubRepo: https://github.com/youruser/yourrepo
+
+# Deploy with minimal configuration
+helm install mydev ./chart -f my-values.yaml
+```
+
+### Option B: One-Command Deploy
+
+```bash
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo
+```
+
+### Option C: Full Configuration
+
 ### 1. Create a secret
 
 The secret is picked up automatically via `envFrom`. Keys recognised:
@@ -74,6 +100,18 @@ A Chrome browser window will open inside VNC for the Claude Max OAuth login. Cre
 ---
 
 ## Helm Chart Reference
+
+The Helm chart uses a logical organization with these main sections:
+- **Basic Configuration**: name, image, githubRepo
+- **Access & Interface**: IDE, SSH, display, user settings
+- **Infrastructure**: storage, resources, cluster access
+- **Integrations**: Happy Coder, MCP sidecars
+- **Smart Defaults**: auto-detection and profiles
+
+📖 **Documentation**:
+- [USAGE.md](chart/USAGE.md) - Comprehensive examples and scenarios
+- [values-quickstart.yaml](chart/values-quickstart.yaml) - Minimal configuration
+- [values.schema.json](chart/values.schema.json) - IDE validation support
 
 ### Core values
 
@@ -160,12 +198,12 @@ The devcontainer includes MCP (Model Context Protocol) servers as sidecar contai
 
 | Sidecar | Default | Purpose |
 |---------|---------|---------|
-| `mcpSidecars.kubernetes.enabled` | `true` | Kubernetes API access via MCP |
-| `mcpSidecars.flux.enabled` | `true` | Flux GitOps operations via MCP |
-| `mcpSidecars.github.enabled` | `false` | GitHub API access via MCP (DISABLED: archived image) |
-| `mcpSidecars.homeassistant.enabled` | `false` | Home Assistant smart home control via MCP |
-| `mcpSidecars.pgtuner.enabled` | `false` | PostgreSQL performance tuning and analysis via MCP |
-| `mcpSidecars.playwright.enabled` | `true` | Browser automation and web testing via MCP |
+| `mcp.sidecars.kubernetes.enabled` | `true` | Kubernetes API access via MCP |
+| `mcp.sidecars.flux.enabled` | `true` | Flux GitOps operations via MCP |
+| `mcp.sidecars.github.enabled` | `false` | GitHub API access via MCP (DISABLED: archived image) |
+| `mcp.sidecars.homeassistant.enabled` | `false` | Home Assistant smart home control via MCP |
+| `mcp.sidecars.pgtuner.enabled` | `false` | PostgreSQL performance tuning and analysis via MCP |
+| `mcp.sidecars.playwright.enabled` | `true` | Browser automation and web testing via MCP |
 
 **Notes:**
 - Kubernetes and Flux sidecars require `clusterAccess` != `none` to be deployed (automatically disabled when no cluster access)
@@ -180,15 +218,15 @@ The devcontainer includes MCP (Model Context Protocol) servers as sidecar contai
 helm install mydev ./chart \
   --set name=mydev \
   --set githubRepo=https://github.com/youruser/yourrepo \
-  --set mcpSidecars.kubernetes.enabled=false \
-  --set mcpSidecars.flux.enabled=false \
-  --set mcpSidecars.playwright.enabled=false
+  --set mcp.sidecars.kubernetes.enabled=false \
+  --set mcp.sidecars.flux.enabled=false \
+  --set mcp.sidecars.playwright.enabled=false
 
 # Or selectively disable
 helm install mydev ./chart \
   --set name=mydev \
   --set githubRepo=https://github.com/youruser/yourrepo \
-  --set mcpSidecars.flux.enabled=false  # Disable only Flux MCP
+  --set mcp.sidecars.flux.enabled=false  # Disable only Flux MCP
 ```
 
 **Enable Home Assistant MCP:**
@@ -203,7 +241,7 @@ kubectl create secret generic devcontainer-mydev-secrets-env \
 helm install mydev ./chart \
   --set name=mydev \
   --set githubRepo=https://github.com/youruser/yourrepo \
-  --set mcpSidecars.homeassistant.enabled=true
+  --set mcp.sidecars.homeassistant.enabled=true
 ```
 
 **Enable PostgreSQL Tuner MCP:**
@@ -217,13 +255,14 @@ kubectl create secret generic devcontainer-mydev-secrets-env \
 helm install mydev ./chart \
   --set name=mydev \
   --set githubRepo=https://github.com/youruser/yourrepo \
-  --set mcpSidecars.pgtuner.enabled=true
+  --set mcp.sidecars.pgtuner.enabled=true
 ```
 
 **Custom MCP configuration:**
 ```yaml
 # values.yaml override
-mcpSidecars:
+mcp:
+  sidecars:
   kubernetes:
     enabled: true
     image:
