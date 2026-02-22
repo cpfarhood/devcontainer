@@ -1,0 +1,58 @@
+# =============================================================================
+# QUICKSTART VALUES - Just set these 3 essentials!
+# =============================================================================
+
+# Instance name (required)
+name: mydev
+
+# GitHub repository to clone (required)
+githubRepo: https://github.com/youruser/yourrepo
+
+# IDE choice (optional - defaults to vscode)
+# Options: vscode | antigravity | none
+ide:
+  type: vscode
+
+# =============================================================================
+# COMMON CUSTOMIZATIONS (optional)
+# =============================================================================
+
+# Enable SSH access
+# ssh:
+#   enabled: true
+
+# Adjust resources for smaller/larger workloads
+# resources:
+#   requests:
+#     memory: "1Gi"    # Smaller
+#     cpu: "500m"
+#   limits:
+#     memory: "4Gi"    # Smaller
+#     cpu: "2000m"
+
+# Different storage size
+# storage:
+#   size: 16Gi         # Smaller
+
+# Disable some MCP sidecars to save resources
+# mcp:
+#   sidecars:
+#     kubernetes:
+#       enabled: false
+#     flux:
+#       enabled: false
+
+# =============================================================================
+# USAGE INSTRUCTIONS
+# =============================================================================
+
+# 1. Copy this file: cp values-quickstart.yaml my-values.yaml
+# 2. Edit the 'name' and 'githubRepo' fields above
+# 3. Deploy: helm install mydev ./chart -f my-values.yaml
+# 4. Access: kubectl port-forward deployment/devcontainer-mydev 5800:5800
+# 5. Open: http://localhost:5800
+
+# For secrets (GitHub token, passwords):
+# kubectl create secret generic devcontainer-mydev-secrets-env \
+#   --from-literal=GITHUB_TOKEN='ghp_...' \
+#   --from-literal=VNC_PASSWORD='changeme'

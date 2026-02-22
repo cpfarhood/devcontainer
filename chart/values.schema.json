@@ -1,0 +1,259 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/cpfarhood/devcontainer/chart/values.schema.json",
+  "title": "Dev Container Helm Chart Values Schema",
+  "description": "Schema for validating values.yaml in the Dev Container Helm chart",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Instance name used to generate resource names",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+      "minLength": 1,
+      "maxLength": 63
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Container image repository"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Container image tag"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "description": "Image pull policy"
+        }
+      },
+      "required": ["repository", "tag"]
+    },
+    "githubRepo": {
+      "type": "string",
+      "description": "GitHub repository URL to clone",
+      "pattern": "^https://github\\.com/.+/.+$"
+    },
+    "ide": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["vscode", "antigravity", "none"],
+          "description": "IDE to launch in the container"
+        }
+      },
+      "required": ["type"]
+    },
+    "ssh": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable SSH server on port 22"
+        }
+      },
+      "required": ["enabled"]
+    },
+    "display": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "string",
+          "pattern": "^[0-9]+$",
+          "description": "VNC display width in pixels"
+        },
+        "height": {
+          "type": "string",
+          "pattern": "^[0-9]+$",
+          "description": "VNC display height in pixels"
+        },
+        "secureConnection": {
+          "type": "string",
+          "enum": ["0", "1"],
+          "description": "Enable secure VNC connection"
+        }
+      },
+      "required": ["width", "height", "secureConnection"]
+    },
+    "user": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9]+$",
+          "description": "User ID (UID)"
+        },
+        "groupId": {
+          "type": "string",
+          "pattern": "^[0-9]+$",
+          "description": "Group ID (GID)"
+        }
+      },
+      "required": ["id", "groupId"]
+    },
+    "storage": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "type": "string",
+          "pattern": "^[0-9]+[KMGT]i$",
+          "description": "Storage size (e.g., 32Gi)"
+        },
+        "className": {
+          "type": "string",
+          "description": "Storage class name (must support ReadWriteMany)"
+        }
+      },
+      "required": ["size", "className"]
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "requests": {
+          "$ref": "#/$defs/resourceSpec"
+        },
+        "limits": {
+          "$ref": "#/$defs/resourceSpec"
+        }
+      },
+      "required": ["requests", "limits"]
+    },
+    "shm": {
+      "type": "object",
+      "properties": {
+        "sizeLimit": {
+          "type": "string",
+          "pattern": "^[0-9]+[KMGT]i$",
+          "description": "Shared memory size limit"
+        }
+      },
+      "required": ["sizeLimit"]
+    },
+    "clusterAccess": {
+      "type": "string",
+      "enum": ["none", "readonlyns", "readwritens", "readonly", "readwrite"],
+      "description": "Kubernetes cluster access level"
+    },
+    "happy": {
+      "type": "object",
+      "properties": {
+        "serverUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Happy Coder server URL"
+        },
+        "webappUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Happy Coder webapp URL"
+        },
+        "homeDir": {
+          "type": "string",
+          "description": "Happy Coder home directory"
+        },
+        "experimental": {
+          "type": "string",
+          "enum": ["true", "false"],
+          "description": "Enable experimental Happy features"
+        }
+      },
+      "required": ["serverUrl", "webappUrl", "homeDir", "experimental"]
+    },
+    "mcp": {
+      "type": "object",
+      "properties": {
+        "sidecars": {
+          "type": "object",
+          "properties": {
+            "kubernetes": {
+              "$ref": "#/$defs/mcpSidecar"
+            },
+            "flux": {
+              "$ref": "#/$defs/mcpSidecar"
+            },
+            "homeassistant": {
+              "$ref": "#/$defs/mcpSidecar"
+            },
+            "github": {
+              "$ref": "#/$defs/mcpSidecar"
+            },
+            "pgtuner": {
+              "$ref": "#/$defs/mcpSidecar"
+            },
+            "playwright": {
+              "$ref": "#/$defs/mcpSidecar"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["sidecars"]
+    },
+    "envSecretName": {
+      "type": "string",
+      "description": "Custom environment secret name"
+    }
+  },
+  "required": ["name"],
+  "$defs": {
+    "resourceSpec": {
+      "type": "object",
+      "properties": {
+        "memory": {
+          "type": "string",
+          "pattern": "^[0-9]+[KMGT]i$",
+          "description": "Memory resource specification"
+        },
+        "cpu": {
+          "type": "string",
+          "pattern": "^[0-9]+m?$",
+          "description": "CPU resource specification"
+        }
+      },
+      "required": ["memory", "cpu"]
+    },
+    "mcpSidecar": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable this MCP sidecar"
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            }
+          },
+          "required": ["repository", "tag"]
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Port for the MCP sidecar"
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "requests": {
+              "$ref": "#/$defs/resourceSpec"
+            },
+            "limits": {
+              "$ref": "#/$defs/resourceSpec"
+            }
+          },
+          "required": ["requests", "limits"]
+        }
+      },
+      "required": ["enabled", "image", "port", "resources"]
+    }
+  }
+}

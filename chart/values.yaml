@@ -1,6 +1,11 @@
+# =============================================================================
+# BASIC CONFIGURATION
+# =============================================================================
+
 # Instance name — used to generate resource names (devcontainer-{name}, userhome-{name})
 name: ""
 
+# Container image configuration
 image:
   repository: ghcr.io/cpfarhood/devcontainer
   tag: latest
@@ -9,43 +14,40 @@ image:
 # GitHub repository to clone into /workspace
 githubRepo: ""
 
-# IDE to launch inside the container.
-# Options:
-#   vscode      — VSCode via VNC browser UI on port 5800 (default)
-#   antigravity — Google Antigravity (VSCode fork) via VNC on port 5800
-#   none        — no IDE; useful when ssh: true is the sole access method
-ide: vscode
+# =============================================================================
+# ACCESS & INTERFACE
+# =============================================================================
 
-# Start an OpenSSH server on port 22 in addition to the IDE.
-# Set SSH_AUTHORIZED_KEYS in the env secret to allow key-based login.
-ssh: false
+# IDE configuration
+ide:
+  # Options: vscode | antigravity | none
+  type: vscode
 
-# Happy Coder endpoints
-happyServerUrl: "https://happy.farh.net"
-happyWebappUrl: "https://happy-coder.farh.net"
-happyHomeDir: "/config/userdata/.happy"
-happyExperimental: "true"
+# SSH access configuration
+ssh:
+  enabled: false
 
-# VNC display
+# VNC display settings
 display:
   width: "1920"
   height: "1080"
+  secureConnection: "0"  # Set to "1" when TLS is not terminated upstream
 
-# Set to "0" when TLS is terminated at the gateway layer
-secureConnection: "0"
+# User configuration
+user:
+  id: "1000"
+  groupId: "1000"
 
-userId: "1000"
-groupId: "1000"
+# =============================================================================
+# INFRASTRUCTURE & RESOURCES
+# =============================================================================
 
+# Storage configuration
 storage:
   size: 32Gi
   className: ceph-filesystem
 
-# Shared memory size — mounted at /dev/shm as a memory-backed emptyDir.
-# Electron apps (Antigravity, Chrome) use /dev/shm for GPU/IPC buffers.
-shm:
-  sizeLimit: 2Gi
-
+# Resource allocation
 resources:
   requests:
     memory: "2Gi"
@@ -54,96 +56,136 @@ resources:
     memory: "8Gi"
     cpu: "4000m"
 
-# Kubernetes cluster access granted to the devcontainer pod via RBAC.
-# Options:
-#   none        — no cluster access (default)
-#   readonlyns  — get/list/watch all resources in the release namespace
-#   readwritens — full access to all resources in the release namespace
-#   readonly    — get/list/watch all resources cluster-wide
-#   readwrite   — full access to all resources cluster-wide
+# Shared memory for Electron apps (Chrome, Antigravity)
+shm:
+  sizeLimit: 2Gi
+
+# Kubernetes cluster access via RBAC
+# Options: none | readonlyns | readwritens | readonly | readwrite
 clusterAccess: none
 
-# Name of existing Secret containing env vars (GITHUB_TOKEN, VNC_PASSWORD, etc.)
-# Defaults to: devcontainer-{name}-secrets-env
-envSecretName: ""
+# =============================================================================
+# INTEGRATIONS
+# =============================================================================
 
-# MCP server sidecars — run alongside the devcontainer to inherit pod RBAC.
-mcpSidecars:
-  kubernetes:
-    enabled: true
-    image:
-      repository: quay.io/containers/kubernetes_mcp_server
-      tag: v0.0.57  # Pinned version (Jan 27, 2025) with token exchange and field selector support
-    port: 8080
-    resources:
-      requests:
-        memory: "64Mi"
-        cpu: "50m"
-      limits:
-        memory: "256Mi"
-        cpu: "500m"
-  flux:
-    enabled: true
-    image:
-      repository: ghcr.io/controlplaneio-fluxcd/flux-operator-mcp
-      tag: v0.41.1
-    port: 8081
-    resources:
-      requests:
-        memory: "64Mi"
-        cpu: "50m"
-      limits:
-        memory: "256Mi"
-        cpu: "500m"
-  homeassistant:
-    enabled: false  # Disabled by default, requires HOMEASSISTANT_URL and HOMEASSISTANT_TOKEN
-    image:
-      repository: ghcr.io/homeassistant-ai/ha-mcp
-      tag: stable  
-    port: 8087
-    resources:
-      requests:
-        memory: "64Mi"
-        cpu: "50m"
-      limits:
-        memory: "256Mi"
-        cpu: "500m"
-  github:
-    enabled: false  # DISABLED: GitHub MCP server has been archived, image doesn't exist
-    image:
-      repository: ghcr.io/modelcontextprotocol/servers/github
-      tag: latest  # Update to specific version once available
-    port: 8088
-    resources:
-      requests:
-        memory: "64Mi"
-        cpu: "50m"
-      limits:
-        memory: "256Mi"
-        cpu: "500m"
-  pgtuner:
-    enabled: false  # Disabled by default, requires DATABASE_URI in secrets
-    image:
-      repository: dog830228/pgtuner_mcp
-      tag: latest
-    port: 8085
-    resources:
-      requests:
-        memory: "64Mi"
-        cpu: "50m"
-      limits:
-        memory: "256Mi"
-        cpu: "500m"
-  playwright:
-    enabled: true  # Enabled by default for browser automation
-    image:
-      repository: microsoft/playwright-mcp
-      tag: latest
-    port: 8086
-    resources:
-      requests:
-        memory: "128Mi"
-        cpu: "100m"
-      limits:
-        memory: "512Mi"
-        cpu: "1000m"
+# Happy Coder AI assistant configuration
+happy:
+  serverUrl: "https://happy.farh.net"
+  webappUrl: "https://happy-coder.farh.net"
+  homeDir: "/config/userdata/.happy"
+  experimental: "true"
+
+# MCP (Model Context Protocol) server sidecars
+mcp:
+  sidecars:
+    # Kubernetes API access
+    kubernetes:
+      enabled: true
+      image:
+        repository: quay.io/containers/kubernetes_mcp_server
+        tag: v0.0.57
+      port: 8080
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "500m"
+
+    # Flux GitOps operations
+    flux:
+      enabled: true
+      image:
+        repository: ghcr.io/controlplaneio-fluxcd/flux-operator-mcp
+        tag: v0.41.1
+      port: 8081
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "500m"
+
+    # Home Assistant smart home control
+    homeassistant:
+      enabled: false  # Requires HOMEASSISTANT_URL and HOMEASSISTANT_TOKEN
+      image:
+        repository: ghcr.io/homeassistant-ai/ha-mcp
+        tag: stable
+      port: 8087
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "500m"
+
+    # GitHub API access (DISABLED: archived image)
+    github:
+      enabled: false
+      image:
+        repository: ghcr.io/modelcontextprotocol/servers/github
+        tag: latest
+      port: 8088
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "500m"
+
+    # PostgreSQL performance tuning
+    pgtuner:
+      enabled: false  # Requires DATABASE_URI in secrets
+      image:
+        repository: dog830228/pgtuner_mcp
+        tag: latest
+      port: 8085
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "500m"
+
+    # Browser automation and web testing
+    playwright:
+      enabled: true
+      image:
+        repository: microsoft/playwright-mcp
+        tag: latest
+      port: 8086
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "512Mi"
+          cpu: "1000m"
+
+# =============================================================================
+# SMART DEFAULTS & AUTO-DETECTION
+# =============================================================================
+
+# Environment auto-detection based on name patterns
+# Automatically adjusts defaults for dev/test/prod/team environments
+autoDetect:
+  environment: true       # Auto-detect dev/prod/team from name
+  storageClass: true      # Auto-detect ReadWriteMany storage class
+  resources: true         # Auto-size resources based on enabled features
+
+# Resource profiles (auto-selected based on environment and features)
+# Override specific values above to customize
+resourceProfile: auto    # auto | small | medium | large | xlarge
+
+# =============================================================================
+# ADVANCED CONFIGURATION
+# =============================================================================
+
+# Custom env secret name (defaults to: devcontainer-{name}-secrets-env)
+envSecretName: ""
