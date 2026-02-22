@@ -48,8 +48,8 @@ The secret is picked up automatically via `envFrom`. Keys recognised:
 | `VNC_PASSWORD` | Password for the VNC web UI |
 | `ANTHROPIC_API_KEY` | API key — alternative to browser-based Claude login |
 | `SSH_AUTHORIZED_KEYS` | Public key(s) for SSH access (required when `ssh: true`) |
-| `HOMEASSISTANT_URL` | Home Assistant URL (required when `mcpSidecars.homeassistant.enabled: true`) |
-| `HOMEASSISTANT_TOKEN` | Home Assistant long-lived access token (required when `mcpSidecars.homeassistant.enabled: true`) |
+| `HOMEASSISTANT_URL` | Home Assistant URL (required when `mcp.sidecars.homeassistant.enabled: true`) |
+| `HOMEASSISTANT_TOKEN` | Home Assistant long-lived access token (required when `mcp.sidecars.homeassistant.enabled: true`) |
 | `DATABASE_URI` | PostgreSQL connection string (required when `mcp.sidecars.pgtuner.enabled: true`) |
 | `PGTUNER_EXCLUDE_USERIDS` | Comma-separated PostgreSQL user OIDs to exclude from monitoring (optional) |
 
@@ -119,14 +119,14 @@ The Helm chart uses a logical organization with these main sections:
 |-------|---------|-------------|
 | `name` | `""` | Instance name — used in all resource names (`devcontainer-{name}`) |
 | `githubRepo` | `""` | Repository to clone into `/workspace` on startup |
-| `ide` | `vscode` | IDE to launch — `vscode`, `antigravity`, or `none` (see below) |
-| `ssh` | `false` | Also start an OpenSSH server on port 22 (additive, any `ide`) |
+| `ide.type` | `vscode` | IDE to launch — `vscode`, `antigravity`, or `none` (see below) |
+| `ssh.enabled` | `false` | Also start an OpenSSH server on port 22 (additive, any IDE) |
 | `image.repository` | `ghcr.io/cpfarhood/devcontainer` | Container image |
 | `image.tag` | `latest` | Image tag |
 
 ### IDE choice
 
-`ide` controls what GUI is launched in the VNC session:
+`ide.type` controls what GUI is launched in the VNC session:
 
 | Value | Port | Description |
 |-------|------|-------------|
@@ -136,14 +136,14 @@ The Helm chart uses a logical organization with these main sections:
 
 ### SSH access
 
-`ssh: true` starts OpenSSH on port 22 **in addition to** the IDE. It works with any `ide` value:
+`ssh.enabled: true` starts OpenSSH on port 22 **in addition to** the IDE. It works with any `ide.type` value:
 
 ```bash
 # SSH-only (no VNC)
-helm install mydev ./chart --set name=mydev --set ide=none --set ssh=true
+helm install mydev ./chart --set name=mydev --set ide.type=none --set ssh.enabled=true
 
 # VSCode in VNC + SSH access at the same time
-helm install mydev ./chart --set name=mydev --set ssh=true
+helm install mydev ./chart --set name=mydev --set ssh.enabled=true
 ```
 
 Add your public key to the env secret:
@@ -165,10 +165,10 @@ ssh -p 2222 user@localhost
 
 | Value | Default | Description |
 |-------|---------|-------------|
-| `happyServerUrl` | `https://happy.farh.net` | Happy Coder server endpoint |
-| `happyWebappUrl` | `https://happy-coder.farh.net` | Happy Coder webapp URL |
-| `happyHomeDir` | `/home/user/.happy` | Happy runtime state directory (persists on the home PVC) |
-| `happyExperimental` | `true` | Enable experimental Happy features |
+| `happy.serverUrl` | `https://happy.farh.net` | Happy Coder server endpoint |
+| `happy.webappUrl` | `https://happy-coder.farh.net` | Happy Coder webapp URL |
+| `happy.homeDir` | `/config/userdata/.happy` | Happy runtime state directory (persists on the home PVC) |
+| `happy.experimental` | `true` | Enable experimental Happy features |
 
 ### Kubernetes cluster access
 
@@ -263,62 +263,46 @@ helm install mydev ./chart \
 # values.yaml override
 mcp:
   sidecars:
-  kubernetes:
-    enabled: true
-    image:
-      repository: quay.io/containers/kubernetes_mcp_server
-      tag: v0.0.57
-    port: 8080
-    resources:
-      requests:
-        memory: "64Mi"
-        cpu: "50m"
-      limits:
-        memory: "256Mi"
-        cpu: "500m"
-  flux:
-    enabled: false  # Disabled in this example
-  github:
-    enabled: false  # Disabled by default (archived image)
-  homeassistant:
-    enabled: true
-    image:
-      repository: ghcr.io/homeassistant-ai/ha-mcp
-      tag: stable
-    port: 8087
-    resources:
-      requests:
-        memory: "64Mi"
-        cpu: "50m"
-      limits:
-        memory: "256Mi"
-        cpu: "500m"
-  pgtuner:
-    enabled: true
-    image:
-      repository: dog830228/pgtuner_mcp
-      tag: latest
-    port: 8085
-    resources:
-      requests:
-        memory: "64Mi"
-        cpu: "50m"
-      limits:
-        memory: "256Mi"
-        cpu: "500m"
-  playwright:
-    enabled: true
-    image:
-      repository: mcr.microsoft.com/playwright/mcp
-      tag: latest
-    port: 8086
-    resources:
-      requests:
-        memory: "128Mi"
-        cpu: "100m"
-      limits:
-        memory: "512Mi"
-        cpu: "1000m"
+    kubernetes:
+      enabled: true
+      image:
+        repository: quay.io/containers/kubernetes_mcp_server
+        tag: v0.0.57
+      port: 8080
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "500m"
+    flux:
+      enabled: false  # Disabled in this example
+    homeassistant:
+      enabled: true
+      image:
+        repository: ghcr.io/homeassistant-ai/ha-mcp
+        tag: stable
+      port: 8087
+    pgtuner:
+      enabled: true
+      image:
+        repository: dog830228/pgtuner_mcp
+        tag: latest
+      port: 8085
+    playwright:
+      enabled: true
+      image:
+        repository: mcr.microsoft.com/playwright/mcp
+        tag: latest
+      port: 8086
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "512Mi"
+          cpu: "1000m"
 ```
 
 ### Display and resources
@@ -327,9 +311,9 @@ mcp:
 |-------|---------|-------------|
 | `display.width` | `1920` | VNC width (px) |
 | `display.height` | `1080` | VNC height (px) |
-| `secureConnection` | `0` | Set to `1` if TLS is not terminated upstream |
-| `userId` | `1000` | UID for the app user |
-| `groupId` | `1000` | GID for the app user |
+| `display.secureConnection` | `0` | Set to `1` if TLS is not terminated upstream |
+| `user.id` | `1000` | UID for the app user |
+| `user.groupId` | `1000` | GID for the app user |
 | `storage.size` | `32Gi` | Home PVC size |
 | `storage.className` | `ceph-filesystem` | StorageClass (must be ReadWriteMany) |
 | `shm.sizeLimit` | `2Gi` | `/dev/shm` size (memory-backed; used by Electron apps) |
@@ -362,10 +346,10 @@ Container start
 
 | Mount | Source | Persistence |
 |-------|--------|-------------|
-| `/home` | ReadWriteMany PVC (`userhome-{name}`) | Survives pod restarts — stores Claude credentials, dotfiles, git config |
+| `/config` | ReadWriteMany PVC (`userhome-{name}`) | Survives pod restarts — stores Claude credentials, dotfiles, git config |
 | `/workspace` | `emptyDir` | Ephemeral — repo is re-cloned on each pod start |
 
-Happy Coder's runtime state (`HAPPY_HOME_DIR`) is kept in `/home/user/.happy` on the persistent home PVC, so auth credentials and settings survive pod restarts when manually started.
+Happy Coder's runtime state (`HAPPY_HOME_DIR`) is kept in `/config/userdata/.happy` on the persistent home PVC, so auth credentials and settings survive pod restarts when manually started.
 
 ---
 

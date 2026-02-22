@@ -20,7 +20,7 @@ The stack is primarily **Bash scripts + YAML** — there is no Node.js package, 
 ```bash
 make build                              # Build Docker image
 make build REGISTRY=ghcr.io/myuser IMAGE_TAG=v1.0  # Custom registry/tag
-docker build -t ghcr.io/cpfarhood/antigravity:latest .  # Direct build
+docker build -t ghcr.io/cpfarhood/devcontainer:latest .  # Direct build
 ```
 
 ### Running Locally
