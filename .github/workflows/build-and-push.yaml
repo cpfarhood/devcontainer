@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v*'
   pull_request:
     branches:
       - main
@@ -18,6 +16,9 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    # Skip builds triggered by release-unified.yaml commits (github-actions[bot])
+    # to prevent racing with the release workflow's own Docker build
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || github.actor != 'github-actions[bot]'
     permissions:
       contents: read
       packages: write
@@ -46,9 +47,6 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
             type=sha,prefix=sha-
             type=raw,value=latest,enable={{is_default_branch}}
 
@@ -62,80 +60,3 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
-
-  release:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v4
-
-      - name: Extract version from tag
-        id: version
-        run: |
-          TAG=${GITHUB_REF#refs/tags/}
-          VERSION=${TAG#v}
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "🚀 Creating release for ${TAG}"
-
-      - name: Package and Push Helm Chart
-        run: |
-          helm registry login ghcr.io \
-            --username ${{ github.actor }} \
-            --password ${{ secrets.GITHUB_TOKEN }}
-          helm package chart/
-          helm push devcontainer-${{ steps.version.outputs.version }}.tgz oci://ghcr.io/cpfarhood/charts
-
-      - name: Generate Release Notes
-        id: notes
-        run: |
-          # Get commits since last tag
-          PREV_TAG=$(git describe --tags --abbrev=0 ${{ steps.version.outputs.tag }}^ 2>/dev/null || echo "")
-          if [ -z "$PREV_TAG" ]; then
-            COMMITS=$(git log --pretty=format:"- %s (%h)" ${{ steps.version.outputs.tag }})
-          else
-            COMMITS=$(git log --pretty=format:"- %s (%h)" ${PREV_TAG}..${{ steps.version.outputs.tag }})
-          fi
-
-          cat << EOF > release-notes.md
-          ## 🚀 Release ${{ steps.version.outputs.version }}
-
-          ### Changes
-          ${COMMITS}
-
-          ### Docker Image
-          \`\`\`bash
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
-          \`\`\`
-
-          ### Helm Chart
-          \`\`\`bash
-          helm install devcontainer oci://ghcr.io/cpfarhood/charts/devcontainer --version ${{ steps.version.outputs.version }}
-          \`\`\`
-          EOF
-
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
-          cat release-notes.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          release_name: Release ${{ steps.version.outputs.tag }}
-          body: ${{ steps.notes.outputs.notes }}
-          draft: false
-          prerelease: false
