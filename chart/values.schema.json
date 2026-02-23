@@ -182,6 +182,12 @@
             },
             "playwright": {
               "$ref": "#/$defs/mcpSidecar"
+            },
+            "fetch": {
+              "$ref": "#/$defs/mcpSidecar"
+            },
+            "sequentialthinking": {
+              "$ref": "#/$defs/mcpSidecar"
             }
           },
           "additionalProperties": false
@@ -192,6 +198,11 @@
     "envSecretName": {
       "type": "string",
       "description": "Custom environment secret name"
+    },
+    "resourceProfile": {
+      "type": "string",
+      "enum": ["auto", "small", "medium", "large", "xlarge"],
+      "description": "Resource profile preset"
     }
   },
   "required": ["name"],
