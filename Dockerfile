@@ -89,9 +89,25 @@ RUN mkdir -p /etc/apt/keyrings && \
       gpg --dearmor --yes -o /etc/apt/keyrings/antigravity-repo-key.gpg && \
     echo "deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev/ antigravity-debian main" \
       > /etc/apt/sources.list.d/antigravity.list && \
+    # Clear package cache to force fresh repository data
+    rm -rf /var/lib/apt/lists/* && \
     apt-get update && \
-    apt-get install -y antigravity && \
+    # Show available versions for debugging
+    apt-cache policy antigravity && \
+    # Install latest version
+    apt-get install -y --no-install-recommends antigravity && \
+    # Display installed version
+    dpkg -l | grep antigravity && \
     rm -rf /var/lib/apt/lists/*
+
+# Pre-configure Antigravity to skip onboarding/setup on first run
+RUN mkdir -p /etc/skel/.config/antigravity/User/globalStorage && \
+    echo '{"antigravityUnifiedStateSync.seenNuxOneTimeMigration": true, "antigravityUnifiedStateSync.browserOnboarding.completed": true, "antigravityUnifiedStateSync.hasOnboardingCompleted": true, "browserOnboarding.hasSeenWelcome": true, "antigravityUnifiedStateSync.browserPreferences.hasAddedLocalhostToAllowlist": true, "antigravityUnifiedStateSync.oauthToken.hasLegacyMigrated": true, "antigravityUnifiedStateSync.auth.tokenSyncEnabled": true, "antigravityUnifiedStateSync.auth.cloudSyncEnabled": true, "theme": "vs-dark"}' \
+      > /etc/skel/.config/antigravity/User/globalStorage/storage.json && \
+    echo '{"workbench.startupEditor": "none", "workbench.welcomePage.walkthroughs.openOnInstall": false, "workbench.tips.enabled": false, "extensions.ignoreRecommendations": true, "telemetry.telemetryLevel": "off", "update.mode": "none", "extensions.autoUpdate": false, "extensions.autoCheckUpdates": false, "workbench.enableExperiments": true, "workbench.settings.enableNaturalLanguageSearch": true, "antigravity.onboarding.completed": true, "antigravity.browserOnboarding.completed": true, "antigravity.setup.completed": true, "antigravity.ai.enabled": true, "antigravity.ai.autoComplete.enabled": true, "antigravity.ai.chat.enabled": true, "antigravity.ai.codeActions.enabled": true, "antigravity.ai.explainCode.enabled": true, "antigravity.ai.generateCode.enabled": true, "antigravity.ai.optimizeCode.enabled": true, "antigravity.ai.autoSuggest.enabled": true, "antigravity.telemetry.crashReporter": "on", "antigravity.ai.acceptTerms": true, "antigravity.auth.syncState": true, "antigravity.auth.enableTokenSync": true, "antigravity.ai.enableCloudSync": true, "antigravity.settings.sync": true}' \
+      > /etc/skel/.config/antigravity/User/settings.json && \
+    # Validate Antigravity installation
+    /usr/share/antigravity/antigravity --version || echo "WARNING: Antigravity version check failed"
 
 # Install OpenSSH server (for SSH IDE mode)
 RUN apt-get update && \
