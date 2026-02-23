@@ -108,6 +108,36 @@ mcp:
           memory: "256Mi"
           cpu: "500m"
 
+    # Web content fetching capabilities
+    fetch:
+      enabled: true
+      image:
+        repository: mcp/fetch
+        tag: latest
+      port: 8082
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "500m"
+
+    # Sequential thinking and problem-solving
+    sequentialthinking:
+      enabled: true
+      image:
+        repository: mcp/sequentialthinking
+        tag: latest
+      port: 8083
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "500m"
+
     # Home Assistant smart home control
     homeassistant:
       enabled: false  # Requires HOMEASSISTANT_URL and HOMEASSISTANT_TOKEN
