@@ -79,7 +79,7 @@ jobs:
         run: |
           sed -i "s/^version: .*/version: ${{ steps.version.outputs.version }}/" chart/Chart.yaml
           git add chart/Chart.yaml
-          git commit -m "chore: release version ${{ steps.version.outputs.version }}"
+          git diff --quiet --staged || git commit -m "chore: release version ${{ steps.version.outputs.version }}"
 
       - name: Create and Push Tag
         run: |
