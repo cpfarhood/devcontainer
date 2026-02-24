@@ -4,6 +4,7 @@
   "title": "Dev Container Helm Chart Values Schema",
   "description": "Schema for validating values.yaml in the Dev Container Helm chart",
   "type": "object",
+  "additionalProperties": true,
   "properties": {
     "name": {
       "type": "string",

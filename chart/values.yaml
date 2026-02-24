@@ -112,8 +112,8 @@ mcp:
     fetch:
       enabled: true
       image:
-        repository: mcp/fetch
-        tag: latest
+        repository: node
+        tag: 22-slim
       port: 8082
       resources:
         requests:
@@ -127,8 +127,8 @@ mcp:
     sequentialthinking:
       enabled: true
       image:
-        repository: mcp/sequentialthinking
-        tag: latest
+        repository: node
+        tag: 22-slim
       port: 8083
       resources:
         requests:
