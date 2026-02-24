@@ -27,6 +27,16 @@ ide:
 ssh:
   enabled: false
 
+# Web file manager — built-in upload/download via the VNC web interface (port 5800)
+# Uses the base image's WEB_FILE_MANAGER feature (no extra sidecar needed)
+fileManager:
+  enabled: false
+  # Paths the file manager can access (default: AUTO = mapped volumes)
+  # Options: AUTO | ALL | comma-separated list of paths
+  allowedPaths: "/workspace,/config"
+  # Paths to deny (takes precedence over allowedPaths)
+  deniedPaths: ""
+
 # VNC display settings
 display:
   width: "1920"

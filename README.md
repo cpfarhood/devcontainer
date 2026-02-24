@@ -6,6 +6,8 @@ A containerized cloud development environment with web-based GUI access, featuri
 - **VSCode or Google Antigravity** via browser-based VNC (port 5800)
 - **SSH access** option (OpenSSH on port 22, additive with any IDE)
 - **Claude Code**, **Happy Coder**, **OpenCode**, and **Crush** AI coding agents (terminal-based)
+- **Built-in web file manager** for uploading/downloading files via the VNC web interface
+- **Helm CLI** included for Kubernetes chart development and deployment
 - **Automatic GitHub repo cloning** on startup
 - **Persistent home directory** via ReadWriteMany PVC
 - **Kubernetes-native** Helm chart deployment
@@ -121,6 +123,7 @@ The Helm chart uses a logical organization with these main sections:
 | `githubRepo` | `""` | Repository to clone into `/workspace` on startup |
 | `ide.type` | `vscode` | IDE to launch — `vscode`, `antigravity`, or `none` (see below) |
 | `ssh.enabled` | `false` | Also start an OpenSSH server on port 22 (additive, any IDE) |
+| `fileManager.enabled` | `false` | Enable the built-in web file manager for upload/download |
 | `image.repository` | `ghcr.io/cpfarhood/devcontainer` | Container image |
 | `image.tag` | `latest` | Image tag |
 
@@ -159,6 +162,24 @@ Then connect:
 ```bash
 kubectl port-forward deployment/devcontainer-mydev 2222:22
 ssh -p 2222 user@localhost
+```
+
+### Web file manager
+
+The base image includes a built-in web file manager for uploading and downloading files through the VNC web interface (port 5800). No additional sidecar is needed.
+
+| Value | Default | Description |
+|-------|---------|-------------|
+| `fileManager.enabled` | `false` | Enable the web file manager |
+| `fileManager.allowedPaths` | `/workspace,/config` | Paths accessible by the file manager (`AUTO`, `ALL`, or comma-separated) |
+| `fileManager.deniedPaths` | `""` | Paths to deny (takes precedence over allowed) |
+
+```bash
+# Enable the file manager
+helm install mydev ./chart \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo \
+  --set fileManager.enabled=true
 ```
 
 ### Happy Coder

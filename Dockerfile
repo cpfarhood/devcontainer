@@ -78,6 +78,12 @@ RUN CRUSH_VERSION=$(curl -sL https://api.github.com/repos/charmbracelet/crush/re
     chmod +x /usr/local/bin/crush && \
     rm -rf /tmp/crush*
 
+# Install Helm CLI for Kubernetes chart management
+ARG HELM_VERSION=3.17.1
+RUN curl -fsSL "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" | \
+    tar -xz --strip-components=1 -C /usr/local/bin linux-amd64/helm && \
+    chmod +x /usr/local/bin/helm
+
 # Install VSCode
 RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/packages.microsoft.gpg && \
     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list && \
