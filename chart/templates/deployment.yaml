@@ -193,7 +193,7 @@ spec:
           imagePullPolicy: Always
           command: ["fastmcp", "run", "--transport", "sse", "--host", "0.0.0.0", "--port", "{{ .Values.mcp.sidecars.sequentialthinking.port }}"]
           ports:
-            - name: sequentialthinking
+            - name: seqthinking
               containerPort: {{ .Values.mcp.sidecars.sequentialthinking.port }}
           livenessProbe:
             tcpSocket:
