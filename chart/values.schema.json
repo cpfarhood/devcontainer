@@ -184,9 +184,6 @@
             "playwright": {
               "$ref": "#/$defs/mcpSidecar"
             },
-            "fetch": {
-              "$ref": "#/$defs/mcpSidecar"
-            },
             "sequentialthinking": {
               "$ref": "#/$defs/mcpSidecar"
             }
