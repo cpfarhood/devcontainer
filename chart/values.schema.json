@@ -183,9 +183,6 @@
             },
             "playwright": {
               "$ref": "#/$defs/mcpSidecar"
-            },
-            "sequentialthinking": {
-              "$ref": "#/$defs/mcpSidecar"
             }
           },
           "additionalProperties": false

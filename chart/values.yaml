@@ -109,20 +109,6 @@ mcp:
           cpu: "500m"
 
 
-    # Sequential thinking and problem-solving
-    sequentialthinking:
-      enabled: true
-      image:
-        repository: node
-        tag: 22-slim
-      port: 8083
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "50m"
-        limits:
-          memory: "256Mi"
-          cpu: "500m"
 
     # Home Assistant smart home control
     homeassistant:

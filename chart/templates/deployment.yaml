@@ -166,27 +166,6 @@ spec:
           resources:
             {{- toYaml .Values.mcp.sidecars.flux.resources | nindent 12 }}
         {{- end }}
-        {{- if .Values.mcp.sidecars.sequentialthinking.enabled }}
-        - name: sequentialthinking-mcp
-          image: "{{ .Values.mcp.sidecars.sequentialthinking.image.repository }}:{{ .Values.mcp.sidecars.sequentialthinking.image.tag }}"
-          imagePullPolicy: Always
-          command: ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"]
-          ports:
-            - name: seqthinking
-              containerPort: {{ .Values.mcp.sidecars.sequentialthinking.port }}
-          livenessProbe:
-            tcpSocket:
-              port: {{ .Values.mcp.sidecars.sequentialthinking.port }}
-            initialDelaySeconds: 10
-            periodSeconds: 10
-          readinessProbe:
-            tcpSocket:
-              port: {{ .Values.mcp.sidecars.sequentialthinking.port }}
-            initialDelaySeconds: 5
-            periodSeconds: 5
-          resources:
-            {{- toYaml .Values.mcp.sidecars.sequentialthinking.resources | nindent 12 }}
-        {{- end }}
         {{- if .Values.mcp.sidecars.homeassistant.enabled }}
         - name: homeassistant-mcp
           image: "{{ .Values.mcp.sidecars.homeassistant.image.repository }}:{{ .Values.mcp.sidecars.homeassistant.image.tag }}"
