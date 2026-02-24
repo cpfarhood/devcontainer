@@ -22,6 +22,7 @@ if [ -n "$GITHUB_TOKEN" ]; then
 
     # Create or update the credentials file
     CREDENTIALS_FILE="/config/userdata/.git-credentials"
+    mkdir -p "$(dirname "$CREDENTIALS_FILE")"
 
     # Support multiple git hosting providers
     # GitHub supports both oauth2 and token as username
@@ -51,6 +52,7 @@ else
 
     # Create an empty credentials file with proper permissions
     CREDENTIALS_FILE="/config/userdata/.git-credentials"
+    mkdir -p "$(dirname "$CREDENTIALS_FILE")"
     touch "$CREDENTIALS_FILE"
     chmod 600 "$CREDENTIALS_FILE"
 

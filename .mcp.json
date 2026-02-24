@@ -22,14 +22,6 @@
     "pgtuner": {
       "type": "sse",
       "url": "http://localhost:8085/sse"
-    },
-    "fetch": {
-      "type": "sse",
-      "url": "http://localhost:8082/sse"
-    },
-    "sequentialthinking": {
-      "type": "sse",
-      "url": "http://localhost:8083/sse"
     }
   }
 }

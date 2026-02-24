@@ -2,6 +2,9 @@
 Resource name prefix: devcontainer-{name}
 */}}
 {{- define "devcontainer.fullname" -}}
+{{- if not .Values.name }}
+{{- fail "values.name is required and must not be empty" }}
+{{- end }}
 {{- printf "devcontainer-%s" .Values.name }}
 {{- end }}
 
@@ -23,6 +26,18 @@ Secret name for env vars, default to devcontainer-{name}-secrets-env
 Common labels
 */}}
 {{- define "devcontainer.labels" -}}
+app: devcontainer
+instance: {{ .Values.name }}
+app.kubernetes.io/name: devcontainer
+app.kubernetes.io/instance: {{ .Values.name }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+{{- end }}
+
+{{/*
+Selector labels — keep narrow since changing these requires recreating the Deployment
+*/}}
+{{- define "devcontainer.selectorLabels" -}}
 app: devcontainer
 instance: {{ .Values.name }}
 {{- end }}

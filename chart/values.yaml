@@ -45,7 +45,7 @@ user:
 # Storage configuration
 storage:
   size: 32Gi
-  className: ceph-filesystem
+  className: ""  # Empty string uses the cluster's default StorageClass (must support ReadWriteMany)
 
 # Resource allocation
 resources:
@@ -70,8 +70,8 @@ clusterAccess: none
 
 # Happy Coder AI assistant configuration
 happy:
-  serverUrl: "https://happy.farh.net"
-  webappUrl: "https://happy-coder.farh.net"
+  serverUrl: ""
+  webappUrl: ""
   homeDir: "/config/userdata/.happy"
   experimental: "true"
 
@@ -115,7 +115,7 @@ mcp:
       enabled: false  # Requires HOMEASSISTANT_URL and HOMEASSISTANT_TOKEN
       image:
         repository: ghcr.io/homeassistant-ai/ha-mcp
-        tag: stable
+        tag: v6.7.1
       port: 8087
       resources:
         requests:
@@ -145,7 +145,7 @@ mcp:
       enabled: true
       image:
         repository: mcr.microsoft.com/playwright/mcp
-        tag: latest
+        tag: v0.0.68
       port: 8086
       resources:
         requests:

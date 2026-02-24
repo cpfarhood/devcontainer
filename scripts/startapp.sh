@@ -34,6 +34,9 @@ case "$IDE" in
         exec sleep infinity
         ;;
     *)
+        if [ "$IDE" != "vscode" ]; then
+            echo "WARNING: Unknown IDE value '$IDE', defaulting to VSCode"
+        fi
         echo "Opening VSCode in: $WORKSPACE_DIR"
         exec code --new-window --wait "$WORKSPACE_DIR"
         ;;

@@ -8,7 +8,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "devcontainer.labels" . | nindent 6 }}
+      {{- include "devcontainer.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
@@ -23,7 +23,7 @@ spec:
       {{- if and .Values.ide.type (eq .Values.ide.type "antigravity") }}
       initContainers:
         - name: setup-userdata
-          image: busybox:latest
+          image: busybox:1.37
           command: ['sh', '-c']
           args:
             - |
@@ -169,7 +169,7 @@ spec:
         {{- if .Values.mcp.sidecars.homeassistant.enabled }}
         - name: homeassistant-mcp
           image: "{{ .Values.mcp.sidecars.homeassistant.image.repository }}:{{ .Values.mcp.sidecars.homeassistant.image.tag }}"
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command: ["fastmcp", "run", "--transport", "sse", "--host", "0.0.0.0", "--port", "{{ .Values.mcp.sidecars.homeassistant.port }}"]
           ports:
             - name: homeassistant
@@ -203,7 +203,7 @@ spec:
         {{- if .Values.mcp.sidecars.pgtuner.enabled }}
         - name: pgtuner-mcp
           image: "{{ .Values.mcp.sidecars.pgtuner.image.repository }}:{{ .Values.mcp.sidecars.pgtuner.image.tag }}"
-          imagePullPolicy: Always
+          imagePullPolicy: Always  # pgtuner uses `latest` tag (no versioned releases available)
           command: ["python", "-m", "pgtuner_mcp", "--mode", "sse", "--host", "0.0.0.0", "--port", "{{ .Values.mcp.sidecars.pgtuner.port }}"]
           ports:
             - name: pgtuner
@@ -237,7 +237,7 @@ spec:
         {{- if .Values.mcp.sidecars.playwright.enabled }}
         - name: playwright-mcp
           image: "{{ .Values.mcp.sidecars.playwright.image.repository }}:{{ .Values.mcp.sidecars.playwright.image.tag }}"
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command: ["node"]
           args:
             - cli.js

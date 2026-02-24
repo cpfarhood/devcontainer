@@ -2,7 +2,7 @@
 
 # Variables
 REGISTRY ?= ghcr.io/cpfarhood
-IMAGE_NAME ?= antigravity
+IMAGE_NAME ?= devcontainer
 IMAGE_TAG ?= latest
 FULL_IMAGE = $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
 
@@ -29,15 +29,15 @@ run:
 		-e HAPPY_EXPERIMENTAL="true" \
 		-v $(PWD)/home:/home \
 		-v $(PWD)/workspace:/workspace \
-		--name antigravity \
+		--name devcontainer \
 		$(FULL_IMAGE)
 	@echo "Access at http://localhost:5800"
 
 # Stop the running container
 stop:
-	@echo "Stopping antigravity container..."
-	docker stop antigravity || true
-	docker rm antigravity || true
+	@echo "Stopping devcontainer..."
+	docker stop devcontainer || true
+	docker rm devcontainer || true
 
 # Clean up local volumes
 clean: stop
@@ -81,7 +81,7 @@ helm-port-forward:
 
 # Show help
 help:
-	@echo "Antigravity Dev Container Makefile"
+	@echo "Dev Container Makefile"
 	@echo ""
 	@echo "Usage: make [target]"
 	@echo ""
@@ -101,7 +101,7 @@ help:
 	@echo ""
 	@echo "Variables:"
 	@echo "  REGISTRY           - Docker registry (default: ghcr.io/cpfarhood)"
-	@echo "  IMAGE_NAME         - Image name (default: antigravity)"
+	@echo "  IMAGE_NAME         - Image name (default: devcontainer)"
 	@echo "  IMAGE_TAG          - Image tag (default: latest)"
 	@echo "  RELEASE_NAME       - Helm release name (default: mydev)"
 	@echo "  NAMESPACE          - Kubernetes namespace (default: default)"

@@ -35,7 +35,7 @@
     "githubRepo": {
       "type": "string",
       "description": "GitHub repository URL to clone",
-      "pattern": "^https://github\\.com/.+/.+$"
+      "pattern": "^https?://.+/.+/.+$"
     },
     "ide": {
       "type": "object",
@@ -108,7 +108,7 @@
           "description": "Storage class name (must support ReadWriteMany)"
         }
       },
-      "required": ["size", "className"]
+      "required": ["size"]
     },
     "resources": {
       "type": "object",
@@ -143,12 +143,10 @@
       "properties": {
         "serverUrl": {
           "type": "string",
-          "format": "uri",
           "description": "Happy Coder server URL"
         },
         "webappUrl": {
           "type": "string",
-          "format": "uri",
           "description": "Happy Coder webapp URL"
         },
         "homeDir": {
@@ -161,7 +159,7 @@
           "description": "Enable experimental Happy features"
         }
       },
-      "required": ["serverUrl", "webappUrl", "homeDir", "experimental"]
+      "required": ["homeDir", "experimental"]
     },
     "mcp": {
       "type": "object",

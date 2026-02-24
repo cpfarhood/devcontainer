@@ -1,0 +1,31 @@
+Dev Container "{{ .Values.name }}" has been deployed.
+
+{{- if ne (.Values.ide.type | default "vscode") "none" }}
+
+Access the IDE:
+  kubectl port-forward deployment/{{ include "devcontainer.fullname" . }} 5800:5800 -n {{ .Release.Namespace }}
+  Then open: http://localhost:5800
+{{- end }}
+
+{{- if .Values.ssh.enabled }}
+
+SSH access:
+  kubectl port-forward deployment/{{ include "devcontainer.fullname" . }} 2222:22 -n {{ .Release.Namespace }}
+  Then: ssh -p 2222 user@localhost
+{{- end }}
+
+Useful commands:
+  Logs:   kubectl logs -f deployment/{{ include "devcontainer.fullname" . }} -n {{ .Release.Namespace }}
+  Shell:  kubectl exec -it deployment/{{ include "devcontainer.fullname" . }} -n {{ .Release.Namespace }} -- bash
+
+{{- if not (lookup "v1" "Secret" .Release.Namespace (include "devcontainer.envSecretName" .)) }}
+
+Optional: Create a secret for GITHUB_TOKEN, VNC_PASSWORD, etc:
+  kubectl create secret generic {{ include "devcontainer.envSecretName" . }} \
+    --from-literal=GITHUB_TOKEN=ghp_xxx \
+    --from-literal=VNC_PASSWORD=changeme \
+    -n {{ .Release.Namespace }}
+{{- end }}
+
+Note: The PVC "{{ include "devcontainer.pvcName" . }}" is protected from deletion on helm uninstall.
+To remove it manually: kubectl delete pvc {{ include "devcontainer.pvcName" . }} -n {{ .Release.Namespace }}
