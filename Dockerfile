@@ -72,9 +72,11 @@ RUN OPENCODE_VERSION=$(curl -sL https://api.github.com/repos/opencode-ai/opencod
 
 # Install Crush AI coding agent (OpenCode successor by Charm)
 RUN CRUSH_VERSION=$(curl -sL https://api.github.com/repos/charmbracelet/crush/releases/latest | jq -r '.tag_name' | sed 's/^v//') && \
-    curl -fsSL "https://github.com/charmbracelet/crush/releases/download/v${CRUSH_VERSION}/crush_${CRUSH_VERSION}_Linux_x86_64.tar.gz" | \
-    tar -xz --strip-components=1 -C /usr/local/bin "crush_${CRUSH_VERSION}_Linux_x86_64/crush" && \
-    chmod +x /usr/local/bin/crush
+    curl -fsSL "https://github.com/charmbracelet/crush/releases/download/v${CRUSH_VERSION}/crush_${CRUSH_VERSION}_Linux_x86_64.tar.gz" -o /tmp/crush.tar.gz && \
+    tar -xzf /tmp/crush.tar.gz -C /tmp && \
+    mv /tmp/crush_${CRUSH_VERSION}_Linux_x86_64/crush /usr/local/bin/crush && \
+    chmod +x /usr/local/bin/crush && \
+    rm -rf /tmp/crush*
 
 # Install VSCode
 RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/packages.microsoft.gpg && \
