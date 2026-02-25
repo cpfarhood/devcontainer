@@ -68,11 +68,9 @@ RUN npm install -g happy-coder
 # forces Docker to re-run these layers instead of serving stale cache.
 ARG TOOLS_CACHEBUST=0
 
-# Install Claude Code via native installer (no Node.js dependency)
-RUN CLAUDE_VERSION=$(curl -fsSL https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/latest) && \
-    echo "Installing Claude Code ${CLAUDE_VERSION}" && \
-    curl -fsSL "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/${CLAUDE_VERSION}/linux-x64/claude" \
-      -o /usr/local/bin/claude && \
+# Install Claude Code via official native installer (installs to ~/.local/bin/claude)
+RUN curl -fsSL https://claude.ai/install.sh | bash && \
+    cp "$HOME/.local/bin/claude" /usr/local/bin/claude && \
     chmod +x /usr/local/bin/claude && \
     claude --version
 
