@@ -96,9 +96,12 @@ RUN curl -fsSL "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" | 
     tar -xz --strip-components=1 -C /usr/local/bin linux-amd64/helm && \
     chmod +x /usr/local/bin/helm
 
-# Install VSCode
-RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/packages.microsoft.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list && \
+# Install VSCode (using Microsoft's current recommended setup)
+RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /tmp/microsoft.gpg && \
+    install -D -o root -g root -m 644 /tmp/microsoft.gpg /usr/share/keyrings/microsoft.gpg && \
+    rm -f /tmp/microsoft.gpg && \
+    printf 'Types: deb\nURIs: https://packages.microsoft.com/repos/code\nSuites: stable\nComponents: main\nArchitectures: amd64\nSigned-By: /usr/share/keyrings/microsoft.gpg\n' \
+      > /etc/apt/sources.list.d/vscode.sources && \
     apt-get update && \
     apt-get install -y code && \
     rm -rf /var/lib/apt/lists/*
