@@ -15,7 +15,7 @@ Use this for all version releases:
 - ✅ Updates chart version
 - ✅ Creates git tag
 - ✅ Builds Docker image with all proper tags
-- ✅ Publishes Helm chart to GHCR
+- ✅ Publishes Helm chart to GitHub Pages (`https://cpfarhood.github.io/devcontainer`)
 - ✅ Creates GitHub Release with changelog
 - ✅ No more `[skip ci]` blocking builds!
 

@@ -190,14 +190,16 @@ helm install my-devcontainer ./chart -f custom-values.yaml
 
 ### CI/CD
 
-- **`build-and-push.yaml`** — Builds and pushes to GHCR on every push to `main`, version tags (`v*`), and PRs. For version tags, also creates GitHub Release with Helm chart after Docker build completes. Tags: `latest` (main), semver, branch name, commit SHA.
+- **`build-and-push.yaml`** — Builds and pushes to GHCR on every push to `main`, version tags (`v*`), and PRs. Tags: `latest` (main), semver, branch name, commit SHA.
+- **`release-unified.yaml`** — Manual release workflow: bumps chart version, builds Docker image, publishes Helm chart to GitHub Pages (`https://cpfarhood.github.io/devcontainer`), and creates GitHub Release.
 - **`dependabot.yml`** — Weekly updates for GitHub Actions and Docker base image.
 
 Image registry: `ghcr.io/cpfarhood/devcontainer`
+Helm repo: `https://cpfarhood.github.io/devcontainer`
 
 ## Kubernetes Notes
 
-- Deployed via Helm chart (`chart/`), published as OCI artifact to GHCR, reconciled by Flux
+- Deployed via Helm chart (`chart/`), published to GitHub Pages Helm repo, reconciled by Flux
 - Storage class is `ceph-filesystem` by default — change via `storage.className` in values
 - Resource limits: 1–4 CPU, 2–8Gi memory
 - Health checks (liveness/readiness probes) on port 5800
