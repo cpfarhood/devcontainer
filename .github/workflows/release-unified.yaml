@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., 0.1.25)'
-        required: true
+        description: 'Explicit version (e.g., 1.2.3). Leave blank to auto-increment.'
+        required: false
         type: string
       release_type:
-        description: 'Release type'
+        description: 'Release type (used when version is blank)'
         required: true
         default: 'patch'
         type: choice
@@ -49,37 +49,34 @@ jobs:
       - name: Determine Version
         id: version
         run: |
-          if [ "${{ github.event.inputs.version }}" != "" ]; then
-            VERSION="${{ github.event.inputs.version }}"
+          INPUT_VERSION="${{ github.event.inputs.version }}"
+          if [ -n "$INPUT_VERSION" ]; then
+            VERSION="$INPUT_VERSION"
           else
-            # Auto-determine next version based on release type
+            # Auto-increment based on release_type
             CURRENT=$(grep '^version:' chart/Chart.yaml | awk '{print $2}')
-            MAJOR=$(echo $CURRENT | cut -d. -f1)
-            MINOR=$(echo $CURRENT | cut -d. -f2)
-            PATCH=$(echo $CURRENT | cut -d. -f3)
+            # Strip any pre-release suffix (e.g., 2.0.0-dev -> 2.0.0)
+            CURRENT=$(echo "$CURRENT" | sed 's/-.*//')
+            MAJOR=$(echo "$CURRENT" | cut -d. -f1)
+            MINOR=$(echo "$CURRENT" | cut -d. -f2)
+            PATCH=$(echo "$CURRENT" | cut -d. -f3)
 
             case "${{ github.event.inputs.release_type }}" in
-              major)
-                VERSION="$((MAJOR + 1)).0.0"
-                ;;
-              minor)
-                VERSION="${MAJOR}.$((MINOR + 1)).0"
-                ;;
-              patch)
-                VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
-                ;;
+              major) VERSION="$((MAJOR + 1)).0.0" ;;
+              minor) VERSION="${MAJOR}.$((MINOR + 1)).0" ;;
+              patch) VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))" ;;
             esac
           fi
 
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
-          echo "🚀 Releasing version ${VERSION}"
+          echo "Releasing version ${VERSION}"
 
       - name: Update Chart Version
         run: |
           sed -i "s/^version: .*/version: ${{ steps.version.outputs.version }}/" chart/Chart.yaml
           git add chart/Chart.yaml
-          git diff --quiet --staged || git commit -m "chore: release version ${{ steps.version.outputs.version }}"
+          git diff --quiet --staged || git commit -m "chore(release): ${{ steps.version.outputs.version }} [skip ci]"
 
       - name: Create and Push Tag
         run: |
@@ -107,18 +104,25 @@ jobs:
           cache-to: type=gha,mode=max
           platforms: linux/amd64
 
-      - name: Package and Publish Helm Chart to GitHub Pages
+      - name: Publish Helm Chart to GitHub Pages
         run: |
-          # Package the chart
           helm package chart/
+          CHART_TGZ="devcontainer-${{ steps.version.outputs.version }}.tgz"
 
-          # Checkout or create gh-pages branch in a temporary directory
-          git worktree add /tmp/gh-pages gh-pages 2>/dev/null || {
-            git worktree add --detach /tmp/gh-pages
-            cd /tmp/gh-pages
-            git checkout --orphan gh-pages
-            git rm -rf . 2>/dev/null || true
-            cat > index.html <<'HTMLEOF'
+          # Set up gh-pages in a temporary directory
+          PAGES_DIR=$(mktemp -d)
+          if git ls-remote --heads origin gh-pages | grep -q gh-pages; then
+            # gh-pages exists — shallow clone just that branch
+            git clone --single-branch --branch gh-pages \
+              "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" \
+              "$PAGES_DIR"
+          else
+            # First time — initialize gh-pages
+            git init "$PAGES_DIR"
+            git -C "$PAGES_DIR" checkout --orphan gh-pages
+            git -C "$PAGES_DIR" remote add origin \
+              "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+            cat > "$PAGES_DIR/index.html" <<'HTMLEOF'
           <!DOCTYPE html>
           <html>
           <head><title>Dev Container Helm Chart Repository</title></head>
@@ -131,45 +135,38 @@ jobs:
           </body>
           </html>
           HTMLEOF
-            git add index.html
-            git commit -m "Initialize gh-pages branch"
-            git push origin gh-pages
-            cd -
-          }
+          fi
 
-          # Copy packaged chart to gh-pages worktree
-          cp devcontainer-${{ steps.version.outputs.version }}.tgz /tmp/gh-pages/
+          git -C "$PAGES_DIR" config user.name "github-actions[bot]"
+          git -C "$PAGES_DIR" config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Update Helm repo index
-          cd /tmp/gh-pages
-          if [ -f index.yaml ]; then
-            helm repo index . --url https://cpfarhood.github.io/devcontainer --merge index.yaml
+          # Copy chart package and rebuild index
+          cp "$CHART_TGZ" "$PAGES_DIR/"
+          if [ -f "$PAGES_DIR/index.yaml" ]; then
+            helm repo index "$PAGES_DIR" --url https://cpfarhood.github.io/devcontainer --merge "$PAGES_DIR/index.yaml"
           else
-            helm repo index . --url https://cpfarhood.github.io/devcontainer
+            helm repo index "$PAGES_DIR" --url https://cpfarhood.github.io/devcontainer
           fi
 
           # Commit and push
-          git add index.yaml *.tgz index.html 2>/dev/null || true
-          git commit -m "Publish chart ${{ steps.version.outputs.version }}"
-          git push origin gh-pages
-          cd -
+          git -C "$PAGES_DIR" add .
+          git -C "$PAGES_DIR" commit -m "Publish chart ${{ steps.version.outputs.version }}"
+          git -C "$PAGES_DIR" push origin gh-pages
 
-          # Clean up worktree
-          git worktree remove /tmp/gh-pages
-
-      - name: Generate Release Notes
-        id: notes
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get commits since last tag
+          # Build release notes
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -z "$PREV_TAG" ]; then
             COMMITS=$(git log --pretty=format:"- %s (%h)" HEAD)
           else
-            COMMITS=$(git log --pretty=format:"- %s (%h)" ${PREV_TAG}..HEAD)
+            COMMITS=$(git log --pretty=format:"- %s (%h)" "${PREV_TAG}..HEAD")
           fi
 
-          cat << EOF > release-notes.md
-          ## 🚀 Release ${{ steps.version.outputs.version }}
+          cat > release-notes.md <<EOF
+          ## Release ${{ steps.version.outputs.version }}
 
           ### Changes
           ${COMMITS}
@@ -187,17 +184,6 @@ jobs:
           \`\`\`
           EOF
 
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
-          cat release-notes.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          release_name: Release ${{ steps.version.outputs.tag }}
-          body: ${{ steps.notes.outputs.notes }}
-          draft: false
-          prerelease: false
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --title "Release ${{ steps.version.outputs.tag }}" \
+            --notes-file release-notes.md

@@ -17,7 +17,6 @@ Use this for all version releases:
 - ✅ Builds Docker image with all proper tags
 - ✅ Publishes Helm chart to GitHub Pages (`https://cpfarhood.github.io/devcontainer`)
 - ✅ Creates GitHub Release with changelog
-- ✅ No more `[skip ci]` blocking builds!
 
 ### 2️⃣ For Quick Fixes → **Quick Fix Build**
 Use this for emergency fixes without version changes:
@@ -30,8 +29,8 @@ Use this for emergency fixes without version changes:
 
 ### 3️⃣ Automatic CI → **Build and Push**
 Runs automatically on:
+- Pushes to `main` (builds and pushes; skipped for release commits via `[skip ci]`)
 - Pull requests (builds but doesn't push)
-- Tags starting with `v*` (builds and pushes)
 - Manual trigger available
 
 ## Workflow Files
@@ -90,5 +89,5 @@ gh run watch
 ### After (Simple! 🎉)
 - **3 total workflows** (down from 6+)
 - **1 button** for complete releases
-- **No more `[skip ci]`** blocking builds
+- Release builds its own Docker image — `[skip ci]` on the version commit prevents duplicate CI builds
 - **Clear separation** of concerns

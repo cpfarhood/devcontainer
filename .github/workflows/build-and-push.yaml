@@ -16,9 +16,6 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    # Skip builds triggered by release-unified.yaml commits (github-actions[bot])
-    # to prevent racing with the release workflow's own Docker build
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || github.actor != 'github-actions[bot]'
     permissions:
       contents: read
       packages: write
