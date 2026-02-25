@@ -1,0 +1,22 @@
+apiVersion: v1
+entries:
+  devcontainer:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2026-02-25T14:01:56.83813346Z"
+    description: Dev Container with AI coding agents and MCP sidecars - supports persistent
+      and dynamic deployment modes
+    digest: 5736c92626e2c3edb8e81ddba5be581360dbf3901ccc607db8bad238ea831cd0
+    keywords:
+    - development
+    - devcontainer
+    - vscode
+    - ai
+    - knative
+    - serverless
+    name: devcontainer
+    type: application
+    urls:
+    - https://cpfarhood.github.io/devcontainer/devcontainer-2.0.0-dev.tgz
+    version: 2.0.0-dev
+generated: "2026-02-25T14:01:56.835795297Z"
