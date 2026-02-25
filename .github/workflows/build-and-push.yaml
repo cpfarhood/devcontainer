@@ -47,8 +47,7 @@ jobs:
             type=ref,event=pr
             type=sha,prefix=sha-
             type=raw,value=latest,enable={{is_default_branch}}
-            # Development tags for serverless features
-            type=raw,value=2.0.0-dev,enable=${{ github.ref == 'refs/heads/feature/serverless-2.0.0' }}
+            type=raw,value=2.0.0-dev,enable={{is_default_branch}}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
