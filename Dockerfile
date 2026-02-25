@@ -65,7 +65,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
 RUN npm install -g happy-coder
 
 # Install Claude Code native binary (npm wrapper breaks remote control)
-RUN curl -fsSL https://claude.ai/install.sh | bash && claude --version
+RUN curl -fsSL https://claude.ai/install.sh | bash && \
+    ln -s /root/.local/bin/claude /usr/local/bin/claude && \
+    claude --version
 
 # Install OpenCode AI coding agent
 RUN OPENCODE_VERSION=$(curl -sL https://api.github.com/repos/opencode-ai/opencode/releases/latest | jq -r '.tag_name') && \
