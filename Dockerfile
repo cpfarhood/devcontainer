@@ -64,11 +64,17 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
 # Install Happy Coder globally via npm
 RUN npm install -g happy-coder
 
+# Cache-bust: tools below fetch "latest" at build time — a changing ARG
+# forces Docker to re-run these layers instead of serving stale cache.
+ARG TOOLS_CACHEBUST=0
+
 # Install Claude Code via native installer (no Node.js dependency)
 RUN CLAUDE_VERSION=$(curl -fsSL https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/latest) && \
+    echo "Installing Claude Code ${CLAUDE_VERSION}" && \
     curl -fsSL "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/${CLAUDE_VERSION}/linux-x64/claude" \
       -o /usr/local/bin/claude && \
-    chmod +x /usr/local/bin/claude
+    chmod +x /usr/local/bin/claude && \
+    claude --version
 
 # Install OpenCode AI coding agent
 RUN OPENCODE_VERSION=$(curl -sL https://api.github.com/repos/opencode-ai/opencode/releases/latest | jq -r '.tag_name') && \
