@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - 'feature/serverless-*'  # Build development images for serverless features
   pull_request:
     branches:
       - main
@@ -49,6 +50,8 @@ jobs:
             type=ref,event=pr
             type=sha,prefix=sha-
             type=raw,value=latest,enable={{is_default_branch}}
+            # Development tags for serverless features
+            type=raw,value=2.0.0-dev,enable=${{ github.ref == 'refs/heads/feature/serverless-2.0.0' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -57,6 +60,51 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+  # Build routing proxy image for serverless features
+  build-routing-proxy:
+    runs-on: ubuntu-latest
+    # Only build routing proxy for serverless feature branches
+    if: github.ref == 'refs/heads/feature/serverless-2.0.0' && github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for routing proxy
+        id: meta-proxy
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/cpfarhood/devcontainer-routing-proxy
+          tags: |
+            type=raw,value=latest
+            type=raw,value=2.0.0-dev
+            type=sha,prefix=sha-
+
+      - name: Build and push routing proxy image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./serverless/routing-proxy
+          push: true
+          tags: ${{ steps.meta-proxy.outputs.tags }}
+          labels: ${{ steps.meta-proxy.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
