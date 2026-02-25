@@ -1,0 +1,248 @@
+---
+# Namespace for serverless components
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: devcontainers
+  labels:
+    app.kubernetes.io/name: devcontainer
+    app.kubernetes.io/component: serverless
+
+---
+# Secret for GitHub tokens, VNC passwords, etc.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: devcontainer-serverless-secrets
+  namespace: devcontainers
+type: Opaque
+stringData:
+  # Update these values as needed
+  GITHUB_TOKEN: ""
+  VNC_PASSWORD: "changeme"
+  ANTHROPIC_API_KEY: ""
+  GIT_USER_NAME: "DevContainer User"
+  GIT_USER_EMAIL: "devcontainer@example.com"
+
+---
+# Routing proxy deployment (handles GitHub repo extraction)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devcontainer-routing-proxy
+  namespace: devcontainers
+  labels:
+    app.kubernetes.io/name: devcontainer
+    app.kubernetes.io/component: routing-proxy
+spec:
+  replicas: 2  # High availability
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: devcontainer
+      app.kubernetes.io/component: routing-proxy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: devcontainer
+        app.kubernetes.io/component: routing-proxy
+    spec:
+      containers:
+      - name: routing-proxy
+        image: ghcr.io/cpfarhood/devcontainer-routing-proxy:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: DEVCONTAINER_SERVICE_URL
+          value: "devcontainer-serverless.devcontainers.svc.cluster.local"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+# Service for routing proxy
+apiVersion: v1
+kind: Service
+metadata:
+  name: devcontainer-routing-proxy
+  namespace: devcontainers
+  labels:
+    app.kubernetes.io/name: devcontainer
+    app.kubernetes.io/component: routing-proxy
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  selector:
+    app.kubernetes.io/name: devcontainer
+    app.kubernetes.io/component: routing-proxy
+
+---
+# Knative Service (auto-scaling devcontainer instances)
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: devcontainer-serverless
+  namespace: devcontainers
+  annotations:
+    # Scale to zero when not in use (saves resources)
+    autoscaling.knative.dev/minScale: "0"
+    autoscaling.knative.dev/maxScale: "10"
+    # Keep instances warm for 5 minutes after last request
+    autoscaling.knative.dev/scale-to-zero-grace-period: "5m"
+    # Target 1 concurrent request per pod (ensures isolation)
+    autoscaling.knative.dev/target: "1"
+    # Custom domain (optional - configure after Authentik setup)
+    # serving.knative.dev/domain: "devcontainer.farh.net"
+spec:
+  template:
+    metadata:
+      annotations:
+        # Container port for VNC web interface
+        autoscaling.knative.dev/targetPort: "5800"
+        # Timeout for cold starts (dev containers need time to initialize)
+        serving.knative.dev/timeoutSeconds: "600"  # 10 minutes for repo cloning
+        # Resource allocation per instance
+        autoscaling.knative.dev/class: "kpa.autoscaling.knative.dev"
+        autoscaling.knative.dev/metric: "concurrency"
+    spec:
+      # Give containers more time to start (repo cloning + IDE launch)
+      timeoutSeconds: 600  # 10 minutes
+      containers:
+      - name: devcontainer
+        image: ghcr.io/cpfarhood/devcontainer:latest
+        ports:
+        - containerPort: 5800
+          name: vnc-web
+        env:
+        # Flag to indicate serverless mode
+        - name: SERVERLESS_MODE
+          value: "true"
+        - name: DYNAMIC_GITHUB_ROUTING
+          value: "true"
+        - name: IDE
+          value: "vscode"
+        - name: DISPLAY_WIDTH
+          value: "1920"
+        - name: DISPLAY_HEIGHT
+          value: "1080"
+        - name: SECURE_CONNECTION
+          value: "0"
+        - name: USER_ID
+          value: "1000"
+        - name: GROUP_ID
+          value: "1000"
+        # Enable file manager for easy upload/download
+        - name: WEB_FILE_MANAGER
+          value: "1"
+        - name: WEB_FILE_MANAGER_ALLOWED_PATHS
+          value: "/workspace,/config"
+        # Happy Coder config (ephemeral in serverless mode)
+        - name: HAPPY_HOME_DIR
+          value: "/tmp/.happy"
+        - name: HAPPY_EXPERIMENTAL
+          value: "true"
+        # Use secrets for sensitive data
+        envFrom:
+        - secretRef:
+            name: devcontainer-serverless-secrets
+            optional: false
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        volumeMounts:
+        - name: tmp-home
+          mountPath: /config
+        - name: shm
+          mountPath: /dev/shm
+        # Readiness probe - VNC must be ready
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5800
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 10
+        # Liveness probe - ensure container stays healthy
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5800
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+      volumes:
+      - name: tmp-home
+        emptyDir: {}  # Ephemeral - each instance gets fresh home
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 2Gi
+
+---
+# Ingress for the routing proxy (will be secured by Authentik)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devcontainer-serverless-ingress
+  namespace: devcontainers
+  annotations:
+    # Authentik forward auth annotations
+    nginx.ingress.kubernetes.io/auth-url: http://authentik.authentik.svc.cluster.local/outpost.goauthentik.io/auth/nginx
+    nginx.ingress.kubernetes.io/auth-signin: https://auth.farh.net/outpost.goauthentik.io/start?rd=$escaped_request_uri
+    nginx.ingress.kubernetes.io/auth-response-headers: X-Authentik-Username,X-Authentik-Groups,X-Authentik-Email,X-Authentik-Name
+    nginx.ingress.kubernetes.io/auth-snippet: |
+      proxy_set_header X-Forwarded-Host $http_host;
+
+    # SSL and general settings
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+    # WebSocket support for VNC
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+
+    # Large file upload support (for file manager)
+    nginx.ingress.kubernetes.io/client-max-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+spec:
+  tls:
+  - hosts:
+    - devcontainer.farh.net
+    secretName: devcontainer-serverless-tls
+  rules:
+  - host: devcontainer.farh.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: devcontainer-routing-proxy
+            port:
+              number: 80

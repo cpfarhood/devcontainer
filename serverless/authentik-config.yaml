@@ -1,0 +1,168 @@
+# Authentik configuration for DevContainer serverless auth
+# This assumes Authentik is already deployed in the 'authentik' namespace
+
+---
+# Application definition for DevContainer Serverless
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-devcontainer-app-config
+  namespace: authentik
+data:
+  # This will be applied via Authentik API or web interface
+  application.yaml: |
+    name: DevContainer Serverless
+    slug: devcontainer-serverless
+    provider: devcontainer-forward-auth-provider
+    launch_url: https://devcontainer.farh.net/
+    open_in_new_tab: true
+    meta_description: "Serverless development containers with dynamic GitHub repository routing"
+    meta_publisher: "DevContainer Team"
+    policy_engine_mode: "all"
+    group: "Development Tools"
+
+---
+# Forward Auth Provider configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-devcontainer-provider-config
+  namespace: authentik
+data:
+  provider.yaml: |
+    name: devcontainer-forward-auth-provider
+    authorization_flow: default-authorization-flow  # Use your default flow
+    external_host: https://devcontainer.farh.net
+
+    # Advanced settings
+    token_validity: hours=24  # Long-lived sessions for dev work
+
+    # Headers to forward to the application
+    # These will be available as HTTP_* environment variables in containers
+    property_mappings:
+      - "authentik_core.x-authentik-username"
+      - "authentik_core.x-authentik-email"
+      - "authentik_core.x-authentik-name"
+      - "authentik_core.x-authentik-groups"
+
+---
+# Outpost configuration for forward auth
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-devcontainer-outpost-config
+  namespace: authentik
+data:
+  outpost.yaml: |
+    name: devcontainer-forward-auth-outpost
+    type: proxy
+    providers:
+      - devcontainer-forward-auth-provider
+
+    # Outpost configuration
+    config:
+      authentik_host: https://auth.farh.net
+      authentik_host_insecure: false
+      authentik_host_browser: https://auth.farh.net
+
+      # Log level for debugging
+      log_level: info
+
+      # Cookie settings
+      cookie_domain: .farh.net
+      cookie_secure: true
+
+      # NGINX ingress integration
+      external_host: https://devcontainer.farh.net
+      internal_host: http://authentik.authentik.svc.cluster.local
+
+      # Forward auth specific settings
+      mode: forward_single
+      skip_path_regex: "^/(health|metrics)$"  # Skip auth for health checks
+
+---
+# Example NGINX Ingress annotations for reference
+# (These go in the main ingress resource)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-nginx-annotations
+  namespace: devcontainers
+data:
+  annotations.yaml: |
+    # Forward auth configuration
+    nginx.ingress.kubernetes.io/auth-url: http://authentik.authentik.svc.cluster.local/outpost.goauthentik.io/auth/nginx
+    nginx.ingress.kubernetes.io/auth-signin: https://auth.farh.net/outpost.goauthentik.io/start?rd=$escaped_request_uri
+    nginx.ingress.kubernetes.io/auth-response-headers: X-Authentik-Username,X-Authentik-Groups,X-Authentik-Email,X-Authentik-Name
+    nginx.ingress.kubernetes.io/auth-snippet: |
+      proxy_set_header X-Forwarded-Host $http_host;
+
+    # Additional headers for the application
+    nginx.ingress.kubernetes.io/server-snippet: |
+      location ~ ^/github/([^/]+/[^/]+) {
+        # Log the GitHub repo being accessed
+        access_log /var/log/nginx/devcontainer-access.log combined;
+
+        # Set additional headers for audit/monitoring
+        proxy_set_header X-GitHub-Repo-Requested https://github.com/$1;
+        proxy_set_header X-Request-Timestamp $time_iso8601;
+        proxy_set_header X-Client-IP $remote_addr;
+      }
+
+---
+# Policy for controlling access (optional - can be configured via Authentik UI)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-devcontainer-policies
+  namespace: authentik
+data:
+  # Example group-based access policy
+  group-access-policy.yaml: |
+    name: DevContainer Access Policy
+    policy_type: group_membership
+    groups:
+      - developers
+      - devops
+      - admins
+
+  # Example expression policy for advanced access control
+  repo-access-policy.yaml: |
+    name: Repository Access Policy
+    policy_type: expression
+    expression: |
+      # Allow access to public repositories for all authenticated users
+      # Require specific groups for private repositories
+
+      github_repo = request.http_request.headers.get('X-GitHub-Repo', '')
+
+      # Check if user has access to private repositories
+      if 'private-repo-access' in user.ak_groups.values_list('name', flat=True):
+          return True
+
+      # For now, allow all authenticated users to access any repository
+      # You can customize this based on your needs
+      return True
+
+---
+# Service Monitor for Prometheus (optional)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-devcontainer-monitoring
+  namespace: authentik
+data:
+  servicemonitor.yaml: |
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      name: devcontainer-authentik
+      namespace: authentik
+    spec:
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: authentik
+      endpoints:
+      - port: http
+        interval: 30s
+        path: /metrics

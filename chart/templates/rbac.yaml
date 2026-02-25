@@ -1,3 +1,4 @@
+{{- if eq .Values.deploymentMode "persistent" }}
 {{- $access := .Values.clusterAccess | default "none" }}
 {{- $name   := include "devcontainer.fullname" . }}
 {{- $ns     := .Release.Namespace }}
@@ -94,4 +95,5 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 
+{{- end }}
 {{- end }}

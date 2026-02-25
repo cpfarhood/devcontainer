@@ -139,6 +139,9 @@ RUN mkdir -p /workspace && \
 # Copy startup scripts
 COPY --chmod=755 scripts/startapp.sh /startapp.sh
 COPY --chmod=755 scripts/init-repo.sh /usr/local/bin/init-repo
+# Copy serverless scripts (conditional execution)
+COPY --chmod=755 serverless/scripts/dynamic-init-repo.sh /usr/local/bin/dynamic-init-repo
+COPY --chmod=755 serverless/scripts/serverless-startapp.sh /usr/local/bin/serverless-startapp
 # Fix app user shell after baseimage-gui creates it at runtime
 COPY --chmod=755 scripts/cont-init-user.sh /etc/cont-init.d/20-fix-user-shell.sh
 COPY --chmod=755 scripts/cont-init-sshd.sh /etc/cont-init.d/25-start-sshd.sh

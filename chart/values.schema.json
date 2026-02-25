@@ -32,10 +32,101 @@
       },
       "required": ["repository", "tag"]
     },
+    "deploymentMode": {
+      "type": "string",
+      "enum": ["persistent", "dynamic"],
+      "description": "Deployment mode: persistent (PVC-based) or dynamic (Knative serverless)"
+    },
     "githubRepo": {
       "type": "string",
-      "description": "GitHub repository URL to clone",
-      "pattern": "^https?://.+/.+/.+$"
+      "description": "GitHub repository URL to clone (required in persistent mode, ignored in dynamic mode)"
+    },
+    "fileManager": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable the built-in web file manager"
+        },
+        "allowedPaths": {
+          "type": "string",
+          "description": "Paths accessible by the file manager (AUTO, ALL, or comma-separated list)"
+        },
+        "deniedPaths": {
+          "type": "string",
+          "description": "Paths to deny access to (takes precedence over allowedPaths)"
+        }
+      },
+      "required": ["enabled"]
+    },
+    "dynamic": {
+      "type": "object",
+      "description": "Configuration for dynamic (serverless) deployment mode",
+      "properties": {
+        "knative": {
+          "type": "object",
+          "properties": {
+            "minScale": { "type": "integer", "minimum": 0 },
+            "maxScale": { "type": "integer", "minimum": 1 },
+            "target": { "type": "integer", "minimum": 1 },
+            "scaleToZeroGracePeriod": { "type": "string" },
+            "timeoutSeconds": { "type": "integer", "minimum": 60 },
+            "resources": {
+              "type": "object",
+              "properties": {
+                "requests": { "$ref": "#/$defs/resourceSpec" },
+                "limits": { "$ref": "#/$defs/resourceSpec" }
+              }
+            }
+          }
+        },
+        "routingProxy": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "replicas": { "type": "integer", "minimum": 1 },
+            "image": {
+              "type": "object",
+              "properties": {
+                "repository": { "type": "string" },
+                "tag": { "type": "string" },
+                "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] }
+              }
+            },
+            "resources": {
+              "type": "object",
+              "properties": {
+                "requests": { "$ref": "#/$defs/resourceSpec" },
+                "limits": { "$ref": "#/$defs/resourceSpec" }
+              }
+            }
+          }
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "className": { "type": "string" },
+            "host": { "type": "string" },
+            "tls": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "secretName": { "type": "string" },
+                "issuer": { "type": "string" }
+              }
+            },
+            "authentik": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "authUrl": { "type": "string" },
+                "signIn": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
     },
     "ide": {
       "type": "object",
