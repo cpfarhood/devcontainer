@@ -56,13 +56,19 @@ exec /usr/bin/google-chrome-stable \\\n\
   "$@"\n' > /usr/local/bin/google-chrome && \
     chmod +x /usr/local/bin/google-chrome
 
-# Install Node.js (LTS version for Happy Coder)
+# Install Node.js LTS (required by Happy Coder)
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Happy Coder and Claude Code globally
-RUN npm install -g happy-coder @anthropic-ai/claude-code
+# Install Happy Coder globally via npm
+RUN npm install -g happy-coder
+
+# Install Claude Code via native installer (no Node.js dependency)
+RUN CLAUDE_VERSION=$(curl -fsSL https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/latest) && \
+    curl -fsSL "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/${CLAUDE_VERSION}/linux-x64/claude" \
+      -o /usr/local/bin/claude && \
+    chmod +x /usr/local/bin/claude
 
 # Install OpenCode AI coding agent
 RUN OPENCODE_VERSION=$(curl -sL https://api.github.com/repos/opencode-ai/opencode/releases/latest | jq -r '.tag_name') && \
