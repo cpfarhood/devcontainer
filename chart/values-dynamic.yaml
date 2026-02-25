@@ -1,0 +1,122 @@
+# Example values for dynamic (serverless) deployment mode
+# Copy this file and customize for your environment:
+# cp values-dynamic.yaml my-dynamic-values.yaml
+
+# =============================================================================
+# BASIC CONFIGURATION
+# =============================================================================
+
+name: "mydev"  # REQUIRED: Instance name
+deploymentMode: dynamic  # Use serverless/dynamic mode
+
+# Container images
+image:
+  repository: ghcr.io/cpfarhood/devcontainer
+  tag: "2.0.0-dev"
+  pullPolicy: Always
+
+# githubRepo is ignored in dynamic mode - repos are specified via URL routing
+
+# =============================================================================
+# ACCESS & INTERFACE
+# =============================================================================
+
+ide:
+  type: vscode  # vscode | antigravity | none
+
+# SSH not supported in dynamic mode (ephemeral containers)
+ssh:
+  enabled: false
+
+# File manager automatically enabled in dynamic mode for file transfer
+fileManager:
+  enabled: true
+
+# =============================================================================
+# DYNAMIC MODE CONFIGURATION
+# =============================================================================
+
+dynamic:
+  # Knative Service auto-scaling configuration
+  knative:
+    minScale: 0        # Scale to zero when not in use
+    maxScale: 10       # Maximum concurrent instances
+    target: 1          # Requests per instance (1 = perfect isolation)
+    scaleToZeroGracePeriod: "5m"  # Keep instances warm for 5 minutes
+    timeoutSeconds: 600           # 10 minutes for repo cloning + IDE startup
+
+    # Resources per container instance
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "4Gi"
+        cpu: "2000m"
+
+  # Routing proxy (extracts GitHub repo from URL path)
+  routingProxy:
+    enabled: true
+    replicas: 2  # High availability
+    image:
+      repository: ghcr.io/cpfarhood/devcontainer-routing-proxy
+      tag: latest
+      pullPolicy: Always
+
+  # Ingress configuration
+  ingress:
+    enabled: true
+    className: nginx
+    host: "devcontainer.example.com"  # REQUIRED: Set your domain
+
+    # SSL with cert-manager
+    tls:
+      enabled: true
+      # secretName: ""  # Auto-generated if empty
+      issuer: "letsencrypt-prod"
+
+    # Authentik forward auth (configure after Authentik setup)
+    authentik:
+      enabled: false  # Set to true when ready
+      authUrl: "http://authentik.authentik.svc.cluster.local/outpost.goauthentik.io/auth/nginx"
+      signIn: "https://auth.example.com/outpost.goauthentik.io/start?rd=$escaped_request_uri"
+
+# =============================================================================
+# STANDARD CONFIGURATION (applies to both modes)
+# =============================================================================
+
+# Display settings
+display:
+  width: "1920"
+  height: "1080"
+  secureConnection: "0"
+
+# User configuration
+user:
+  id: "1000"
+  groupId: "1000"
+
+# Resource allocation (container shared memory)
+shm:
+  sizeLimit: 2Gi
+
+# Happy Coder (ephemeral in dynamic mode)
+happy:
+  serverUrl: ""
+  webappUrl: ""
+  homeDir: "/tmp/.happy"  # Ephemeral location in dynamic mode
+  experimental: "true"
+
+# MCP sidecars are not supported in dynamic mode (Knative limitation)
+mcp:
+  sidecars:
+    kubernetes:
+      enabled: false
+    flux:
+      enabled: false
+    homeassistant:
+      enabled: false
+    pgtuner:
+      enabled: false
+    playwright:
+      enabled: false

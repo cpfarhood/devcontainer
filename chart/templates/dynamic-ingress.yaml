@@ -1,0 +1,68 @@
+{{- if and (eq .Values.deploymentMode "dynamic") .Values.dynamic.ingress.enabled .Values.dynamic.ingress.host }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "devcontainer.fullname" . }}-dynamic
+  labels:
+    {{- include "devcontainer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: dynamic-ingress
+  annotations:
+    {{- if .Values.dynamic.ingress.className }}
+    kubernetes.io/ingress.class: {{ .Values.dynamic.ingress.className }}
+    {{- end }}
+
+    # SSL configuration
+    {{- if .Values.dynamic.ingress.tls.enabled }}
+    cert-manager.io/cluster-issuer: {{ .Values.dynamic.ingress.tls.issuer | quote }}
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    {{- end }}
+
+    # Authentik forward auth (if enabled)
+    {{- if .Values.dynamic.ingress.authentik.enabled }}
+    nginx.ingress.kubernetes.io/auth-url: {{ .Values.dynamic.ingress.authentik.authUrl | quote }}
+    nginx.ingress.kubernetes.io/auth-signin: {{ .Values.dynamic.ingress.authentik.signIn | quote }}
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Authentik-Username,X-Authentik-Groups,X-Authentik-Email,X-Authentik-Name"
+    nginx.ingress.kubernetes.io/auth-snippet: |
+      proxy_set_header X-Forwarded-Host $http_host;
+    {{- end }}
+
+    # WebSocket support for VNC connections
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+
+    # Large file upload support (for file manager)
+    nginx.ingress.kubernetes.io/client-max-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+
+    # Custom server snippet for GitHub repo logging
+    nginx.ingress.kubernetes.io/server-snippet: |
+      location ~ ^/github/([^/]+/[^/]+) {
+        # Log the GitHub repo being accessed
+        access_log /var/log/nginx/devcontainer-access.log combined;
+
+        # Set additional headers for audit/monitoring
+        proxy_set_header X-GitHub-Repo-Requested https://github.com/$1;
+        proxy_set_header X-Request-Timestamp $time_iso8601;
+        proxy_set_header X-Client-IP $remote_addr;
+      }
+
+spec:
+  {{- if .Values.dynamic.ingress.tls.enabled }}
+  tls:
+  - hosts:
+    - {{ .Values.dynamic.ingress.host }}
+    secretName: {{ .Values.dynamic.ingress.tls.secretName | default (printf "%s-tls" (include "devcontainer.fullname" .)) }}
+  {{- end }}
+  rules:
+  - host: {{ .Values.dynamic.ingress.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "devcontainer.fullname" . }}-routing-proxy
+            port:
+              number: 80
+{{- end }}

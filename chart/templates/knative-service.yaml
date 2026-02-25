@@ -1,0 +1,111 @@
+{{- if eq .Values.deploymentMode "dynamic" }}
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: {{ include "devcontainer.fullname" . }}
+  labels:
+    {{- include "devcontainer.labels" . | nindent 4 }}
+  annotations:
+    # Knative scaling annotations
+    autoscaling.knative.dev/minScale: {{ .Values.dynamic.knative.minScale | quote }}
+    autoscaling.knative.dev/maxScale: {{ .Values.dynamic.knative.maxScale | quote }}
+    autoscaling.knative.dev/target: {{ .Values.dynamic.knative.target | quote }}
+    autoscaling.knative.dev/scale-to-zero-grace-period: {{ .Values.dynamic.knative.scaleToZeroGracePeriod | quote }}
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "devcontainer.labels" . | nindent 8 }}
+      annotations:
+        # Container configuration
+        autoscaling.knative.dev/targetPort: "5800"
+        serving.knative.dev/timeoutSeconds: {{ .Values.dynamic.knative.timeoutSeconds | quote }}
+        # Scaling configuration
+        autoscaling.knative.dev/class: "kpa.autoscaling.knative.dev"
+        autoscaling.knative.dev/metric: "concurrency"
+    spec:
+      # Container startup timeout
+      timeoutSeconds: {{ .Values.dynamic.knative.timeoutSeconds }}
+      containers:
+      - name: devcontainer
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 5800
+          name: vnc-web
+        env:
+        # Dynamic mode flags
+        - name: SERVERLESS_MODE
+          value: "true"
+        - name: DYNAMIC_GITHUB_ROUTING
+          value: "true"
+        - name: DEPLOYMENT_MODE
+          value: "dynamic"
+        # Standard configuration
+        - name: IDE
+          value: {{ .Values.ide.type | default "vscode" | quote }}
+        - name: USER_ID
+          value: {{ .Values.user.id | quote }}
+        - name: GROUP_ID
+          value: {{ .Values.user.groupId | quote }}
+        - name: DISPLAY_WIDTH
+          value: {{ .Values.display.width | quote }}
+        - name: DISPLAY_HEIGHT
+          value: {{ .Values.display.height | quote }}
+        - name: SECURE_CONNECTION
+          value: {{ .Values.display.secureConnection | quote }}
+        # File manager (always enabled in dynamic mode for easy file transfer)
+        - name: WEB_FILE_MANAGER
+          value: "1"
+        - name: WEB_FILE_MANAGER_ALLOWED_PATHS
+          value: "/workspace,/tmp"  # No persistent /config in dynamic mode
+        # Happy Coder (ephemeral in dynamic mode)
+        - name: HAPPY_HOME_DIR
+          value: "/tmp/.happy"
+        - name: HAPPY_EXPERIMENTAL
+          value: {{ .Values.happy.experimental | quote }}
+        {{- if .Values.happy.serverUrl }}
+        - name: HAPPY_SERVER_URL
+          value: {{ .Values.happy.serverUrl | quote }}
+        {{- end }}
+        {{- if .Values.happy.webappUrl }}
+        - name: HAPPY_WEBAPP_URL
+          value: {{ .Values.happy.webappUrl | quote }}
+        {{- end }}
+        # Secret environment variables
+        envFrom:
+        - secretRef:
+            name: {{ include "devcontainer.envSecretName" . }}
+            optional: true
+        resources:
+          {{- toYaml .Values.dynamic.knative.resources | nindent 10 }}
+        volumeMounts:
+        - name: tmp-home
+          mountPath: /config
+        - name: shm
+          mountPath: /dev/shm
+        # Health probes (adjusted for dynamic mode startup time)
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5800
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5800
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+      volumes:
+      - name: tmp-home
+        emptyDir: {}  # Ephemeral - each instance gets fresh home
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: {{ .Values.shm.sizeLimit }}
+{{- end }}

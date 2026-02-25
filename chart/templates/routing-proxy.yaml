@@ -1,0 +1,66 @@
+{{- if and (eq .Values.deploymentMode "dynamic") .Values.dynamic.routingProxy.enabled }}
+---
+# Routing proxy deployment for dynamic GitHub repo extraction
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "devcontainer.fullname" . }}-routing-proxy
+  labels:
+    {{- include "devcontainer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: routing-proxy
+spec:
+  replicas: {{ .Values.dynamic.routingProxy.replicas }}
+  selector:
+    matchLabels:
+      {{- include "devcontainer.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: routing-proxy
+  template:
+    metadata:
+      labels:
+        {{- include "devcontainer.labels" . | nindent 8 }}
+        app.kubernetes.io/component: routing-proxy
+    spec:
+      containers:
+      - name: routing-proxy
+        image: "{{ .Values.dynamic.routingProxy.image.repository }}:{{ .Values.dynamic.routingProxy.image.tag }}"
+        imagePullPolicy: {{ .Values.dynamic.routingProxy.image.pullPolicy }}
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: DEVCONTAINER_SERVICE_URL
+          value: "{{ include "devcontainer.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local"
+        resources:
+          {{- toYaml .Values.dynamic.routingProxy.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+# Service for routing proxy
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "devcontainer.fullname" . }}-routing-proxy
+  labels:
+    {{- include "devcontainer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: routing-proxy
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  selector:
+    {{- include "devcontainer.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: routing-proxy
+{{- end }}

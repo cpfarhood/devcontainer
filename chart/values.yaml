@@ -5,13 +5,18 @@
 # Instance name — used to generate resource names (devcontainer-{name}, userhome-{name})
 name: ""
 
+# Deployment mode controls the infrastructure pattern
+# - persistent: Traditional model with PVC storage, single long-lived deployment
+# - dynamic: Serverless model with Knative, auto-scaling from 0, dynamic GitHub routing
+deploymentMode: persistent  # persistent | dynamic
+
 # Container image configuration
 image:
   repository: ghcr.io/cpfarhood/devcontainer
   tag: latest
   pullPolicy: Always
 
-# GitHub repository to clone into /workspace
+# GitHub repository to clone into /workspace (ignored in dynamic mode - uses URL routing)
 githubRepo: ""
 
 # =============================================================================
@@ -179,6 +184,67 @@ autoDetect:
 # Resource profiles (auto-selected based on environment and features)
 # Override specific values above to customize
 resourceProfile: auto    # auto | small | medium | large | xlarge
+
+# =============================================================================
+# DYNAMIC MODE CONFIGURATION (deploymentMode: dynamic)
+# =============================================================================
+
+# Dynamic mode uses Knative Services and routing proxy for serverless operation
+dynamic:
+  # Knative Service configuration
+  knative:
+    # Scaling configuration
+    minScale: 0                    # Scale to zero when not in use
+    maxScale: 10                   # Maximum number of concurrent instances
+    target: 1                      # Requests per instance (isolation = 1 request per pod)
+    scaleToZeroGracePeriod: "5m"   # Keep instances warm for 5 minutes
+
+    # Container startup timeout (repo cloning + IDE startup)
+    timeoutSeconds: 600            # 10 minutes
+
+    # Resource configuration (per instance)
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "4Gi"
+        cpu: "2000m"
+
+  # Routing proxy configuration (extracts GitHub repo from URL)
+  routingProxy:
+    enabled: true
+    replicas: 2                    # High availability
+    image:
+      repository: ghcr.io/cpfarhood/devcontainer-routing-proxy
+      tag: latest
+      pullPolicy: Always
+
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+
+  # Ingress configuration for dynamic mode
+  ingress:
+    enabled: true
+    className: nginx
+    host: ""                       # Set this to your domain (e.g., devcontainer.farh.net)
+
+    # TLS configuration
+    tls:
+      enabled: true
+      secretName: ""               # Auto-generated if empty
+      issuer: "letsencrypt-prod"   # cert-manager ClusterIssuer
+
+    # Authentik forward auth configuration
+    authentik:
+      enabled: false               # Set to true when Authentik is configured
+      authUrl: "http://authentik.authentik.svc.cluster.local/outpost.goauthentik.io/auth/nginx"
+      signIn: "https://auth.example.com/outpost.goauthentik.io/start?rd=$escaped_request_uri"
 
 # =============================================================================
 # ADVANCED CONFIGURATION
