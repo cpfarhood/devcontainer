@@ -14,23 +14,30 @@ A containerized cloud development environment with web-based GUI access, featuri
 
 ## Quick Start
 
-### Option A: Quickstart (Recommended)
-
-For 80% of users, use the simplified quickstart values:
+### Option A: Install from Helm Repo (Recommended)
 
 ```bash
-# Copy and customize the quickstart template
+# Add the Helm repository
+helm repo add devcontainer https://cpfarhood.github.io/devcontainer
+helm repo update
+
+# Deploy with one command
+helm install mydev devcontainer/devcontainer \
+  --set name=mydev \
+  --set githubRepo=https://github.com/youruser/yourrepo
+```
+
+### Option B: Install from Source
+
+```bash
+# Clone and customize the quickstart template
 cp chart/values-quickstart.yaml my-values.yaml
+# Edit my-values.yaml to set your name and repository
 
-# Edit my-values.yaml to set your name and repository:
-# name: mydev
-# githubRepo: https://github.com/youruser/yourrepo
-
-# Deploy with minimal configuration
 helm install mydev ./chart -f my-values.yaml
 ```
 
-### Option B: One-Command Deploy
+### Option C: One-Command from Source
 
 ```bash
 helm install mydev ./chart \
