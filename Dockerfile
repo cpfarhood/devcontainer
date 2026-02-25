@@ -64,8 +64,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
 # Install Happy Coder globally via npm (stable, rarely changes)
 RUN npm install -g happy-coder
 
-# Install Claude Code globally via npm
-RUN npm install -g @anthropic-ai/claude-code@latest && claude --version
+# Install Claude Code native binary (npm wrapper breaks remote control)
+RUN curl -fsSL https://claude.ai/install.sh | sh && claude --version
 
 # Install OpenCode AI coding agent
 RUN OPENCODE_VERSION=$(curl -sL https://api.github.com/repos/opencode-ai/opencode/releases/latest | jq -r '.tag_name') && \
