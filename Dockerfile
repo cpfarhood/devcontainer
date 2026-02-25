@@ -61,12 +61,15 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Happy Coder and Claude Code globally via npm
-RUN npm install -g happy-coder @anthropic-ai/claude-code
+# Install Happy Coder globally via npm (stable, rarely changes)
+RUN npm install -g happy-coder
 
 # Cache-bust: tools below fetch "latest" at build time — a changing ARG
 # forces Docker to re-run these layers instead of serving stale cache.
 ARG TOOLS_CACHEBUST=0
+
+# Install Claude Code globally via npm
+RUN npm install -g @anthropic-ai/claude-code
 
 # Install OpenCode AI coding agent
 RUN OPENCODE_VERSION=$(curl -sL https://api.github.com/repos/opencode-ai/opencode/releases/latest | jq -r '.tag_name') && \
