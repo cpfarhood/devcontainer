@@ -107,13 +107,55 @@ jobs:
           cache-to: type=gha,mode=max
           platforms: linux/amd64
 
-      - name: Package Helm Chart
+      - name: Package and Publish Helm Chart to GitHub Pages
         run: |
-          helm registry login ghcr.io \
-            --username ${{ github.actor }} \
-            --password ${{ secrets.GITHUB_TOKEN }}
+          # Package the chart
           helm package chart/
-          helm push devcontainer-${{ steps.version.outputs.version }}.tgz oci://ghcr.io/cpfarhood/charts
+
+          # Checkout or create gh-pages branch in a temporary directory
+          git worktree add /tmp/gh-pages gh-pages 2>/dev/null || {
+            git worktree add --detach /tmp/gh-pages
+            cd /tmp/gh-pages
+            git checkout --orphan gh-pages
+            git rm -rf . 2>/dev/null || true
+            cat > index.html <<'HTMLEOF'
+          <!DOCTYPE html>
+          <html>
+          <head><title>Dev Container Helm Chart Repository</title></head>
+          <body>
+          <h1>Dev Container Helm Chart Repository</h1>
+          <p>Add this repository to Helm:</p>
+          <pre>helm repo add devcontainer https://cpfarhood.github.io/devcontainer</pre>
+          <p>Install the chart:</p>
+          <pre>helm install mydev devcontainer/devcontainer --set name=mydev</pre>
+          </body>
+          </html>
+          HTMLEOF
+            git add index.html
+            git commit -m "Initialize gh-pages branch"
+            git push origin gh-pages
+            cd -
+          }
+
+          # Copy packaged chart to gh-pages worktree
+          cp devcontainer-${{ steps.version.outputs.version }}.tgz /tmp/gh-pages/
+
+          # Update Helm repo index
+          cd /tmp/gh-pages
+          if [ -f index.yaml ]; then
+            helm repo index . --url https://cpfarhood.github.io/devcontainer --merge index.yaml
+          else
+            helm repo index . --url https://cpfarhood.github.io/devcontainer
+          fi
+
+          # Commit and push
+          git add index.yaml *.tgz index.html 2>/dev/null || true
+          git commit -m "Publish chart ${{ steps.version.outputs.version }}"
+          git push origin gh-pages
+          cd -
+
+          # Clean up worktree
+          git worktree remove /tmp/gh-pages
 
       - name: Generate Release Notes
         id: notes
@@ -139,7 +181,9 @@ jobs:
 
           ### Helm Chart
           \`\`\`bash
-          helm install devcontainer oci://ghcr.io/cpfarhood/charts/devcontainer --version ${{ steps.version.outputs.version }}
+          helm repo add devcontainer https://cpfarhood.github.io/devcontainer
+          helm repo update
+          helm install mydev devcontainer/devcontainer --version ${{ steps.version.outputs.version }} --set name=mydev
           \`\`\`
           EOF
 
