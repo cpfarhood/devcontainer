@@ -66,7 +66,8 @@ RUN npm install -g happy-coder
 
 # Install Claude Code native binary (npm wrapper breaks remote control)
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
-    ln -s /root/.local/bin/claude /usr/local/bin/claude && \
+    cp /root/.local/bin/claude /usr/local/bin/claude && \
+    rm -rf /root/.local/bin/claude && \
     claude --version
 
 # Install OpenCode AI coding agent
