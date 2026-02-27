@@ -124,6 +124,20 @@ mcp:
           cpu: "500m"
 
 
+    # Helm chart browsing and management
+    helm:
+      enabled: true
+      image:
+        repository: ghcr.io/zekker6/mcp-helm
+        tag: v1.3.1
+      port: 8088
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "500m"
 
     # Home Assistant smart home control
     homeassistant:

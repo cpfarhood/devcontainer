@@ -179,6 +179,29 @@ spec:
           resources:
             {{- toYaml .Values.mcp.sidecars.flux.resources | nindent 12 }}
         {{- end }}
+        {{- if .Values.mcp.sidecars.helm.enabled }}
+        - name: helm-mcp
+          image: "{{ .Values.mcp.sidecars.helm.image.repository }}:{{ .Values.mcp.sidecars.helm.image.tag }}"
+          args:
+            - -mode=sse
+            - -port={{ .Values.mcp.sidecars.helm.port }}
+          ports:
+            - containerPort: {{ .Values.mcp.sidecars.helm.port }}
+              name: helm-mcp
+              protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.mcp.sidecars.helm.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.mcp.sidecars.helm.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.mcp.sidecars.helm.resources | nindent 12 }}
+        {{- end }}
         {{- if .Values.mcp.sidecars.homeassistant.enabled }}
         - name: homeassistant-mcp
           image: "{{ .Values.mcp.sidecars.homeassistant.image.repository }}:{{ .Values.mcp.sidecars.homeassistant.image.tag }}"

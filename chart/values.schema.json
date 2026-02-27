@@ -270,6 +270,9 @@
             "pgtuner": {
               "$ref": "#/$defs/mcpSidecar"
             },
+            "helm": {
+              "$ref": "#/$defs/mcpSidecar"
+            },
             "playwright": {
               "$ref": "#/$defs/mcpSidecar"
             }

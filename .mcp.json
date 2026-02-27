@@ -19,10 +19,9 @@
       "type": "sse",
       "url": "http://localhost:8086/sse"
     },
-    "pgtuner": {
+    "helm": {
       "type": "sse",
-      "url": "http://localhost:8085/sse"
+      "url": "http://localhost:8088/sse"
     }
   }
 }
-
