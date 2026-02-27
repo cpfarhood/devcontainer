@@ -69,7 +69,7 @@ Container start
 
 | File | Purpose |
 |------|---------|
-| `Dockerfile` | Image definition — installs Chrome, Node.js, VSCode, Helm, Claude Code, Happy Coder, OpenCode, Crush; creates non-root user (UID 1000) |
+| `Dockerfile` | Image definition — installs Chrome, Node.js, VSCode, Helm, gh CLI, kubeseal, Claude Code, Happy Coder, OpenCode, Crush; creates non-root user (UID 1000) |
 | `scripts/init-repo.sh` | Configures git credentials, clones GitHub repo |
 | `scripts/startapp.sh` | Calls init-repo.sh then opens VSCode in the workspace |
 | `chart/` | Helm chart for Kubernetes deployment |
@@ -78,7 +78,7 @@ Container start
 | `chart/templates/pvc.yaml` | PersistentVolumeClaim for user home |
 | `chart/templates/service.yaml` | ClusterIP Service (VNC + optional SSH) |
 | `chart/values.yaml` | Default Helm values |
-| `.mcp.json` | MCP server connection config (GitHub Copilot, Kubernetes, Flux, Fetch, Sequential Thinking, Playwright, pgtuner) |
+| `.mcp.json` | MCP server connection config (GitHub Copilot, Kubernetes, Flux, Helm, Fetch, Sequential Thinking, Playwright, pgtuner) |
 | `Makefile` | Build/deploy automation |
 
 ### MCP Sidecars
@@ -89,6 +89,7 @@ MCP (Model Context Protocol) servers run as sidecar containers in the pod, enabl
 |---------|-------|---------|------|----------|---------|
 | `kubernetes-mcp` | `quay.io/containers/kubernetes_mcp_server` | v0.0.57 | 8080 | `http://localhost:8080/sse` | Enabled |
 | `flux-mcp` | `ghcr.io/controlplaneio-fluxcd/flux-operator-mcp` | v0.41.1 | 8081 | `http://localhost:8081/sse` | Enabled |
+| `helm-mcp` | `ghcr.io/zekker6/mcp-helm` | v1.3.1 | 8088 | `http://localhost:8088/sse` | Enabled |
 | `fetch-mcp` | `mcp/fetch` | latest | 8082 | `http://localhost:8082/sse` | Enabled |
 | `sequentialthinking-mcp` | `mcp/sequentialthinking` | latest | 8083 | `http://localhost:8083/sse` | Enabled |
 | `homeassistant-mcp` | `ghcr.io/homeassistant-ai/ha-mcp` | stable | 8087 | `http://localhost:8087/sse` | Disabled |
@@ -99,6 +100,7 @@ MCP (Model Context Protocol) servers run as sidecar containers in the pod, enabl
 - GitHub MCP is accessed via the Copilot API (`https://api.githubcopilot.com/mcp/`), not as a sidecar
 - Kubernetes and Flux sidecars require `clusterAccess` != `none` to be deployed (they need RBAC permissions)
 - Kubernetes and Flux sidecars inherit the pod's ServiceAccount RBAC permissions
+- Helm sidecar enables browsing Helm repositories and chart metadata
 - Fetch sidecar provides web content fetching capabilities and HTML to markdown conversion
 - Sequential thinking sidecar enables structured thinking and problem-solving processes
 - Home Assistant sidecar requires `HOMEASSISTANT_URL` and `HOMEASSISTANT_TOKEN` in the env secret
@@ -116,6 +118,8 @@ mcp:
     kubernetes:
       enabled: false
     flux:
+      enabled: false
+    helm:
       enabled: false
     fetch:
       enabled: false
@@ -135,6 +139,8 @@ mcp:
       enabled: true  # Keep Kubernetes MCP enabled
     flux:
       enabled: false # Disable Flux MCP
+    helm:
+      enabled: true  # Enable Helm MCP for chart browsing
     fetch:
       enabled: true  # Enable Fetch MCP for web content fetching
     sequentialthinking:
