@@ -156,8 +156,10 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
         run: |
-          # Build release notes
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
           if [ -z "$PREV_TAG" ]; then
             COMMITS=$(git log --pretty=format:"- %s (%h)" HEAD)
@@ -165,29 +167,26 @@ jobs:
             COMMITS=$(git log --pretty=format:"- %s (%h)" "${PREV_TAG}..HEAD")
           fi
 
-          cat > release-notes.md <<'NOTESEOF'
-          ## Release RELEASE_VERSION
+          cat > release-notes.md <<NOTESEOF
+          ## Release ${VERSION}
 
           ### Changes
-          RELEASE_COMMITS
+          ${COMMITS}
 
           ### Docker Image
-          ```bash
-          docker pull RELEASE_IMAGE
-          ```
+          \`\`\`bash
+          docker pull ${IMAGE}
+          \`\`\`
 
           ### Helm Chart
-          ```bash
+          \`\`\`bash
           helm repo add devcontainer https://cpfarhood.github.io/devcontainer
           helm repo update
-          helm install mydev devcontainer/devcontainer --version RELEASE_VERSION --set name=mydev
-          ```
+          helm install mydev devcontainer/devcontainer --version ${VERSION} --set name=mydev
+          \`\`\`
           NOTESEOF
           sed -i 's/^          //' release-notes.md
-          sed -i "s|RELEASE_VERSION|${{ steps.version.outputs.version }}|g" release-notes.md
-          sed -i "s|RELEASE_IMAGE|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}|g" release-notes.md
-          sed -i "s|RELEASE_COMMITS|${COMMITS}|g" release-notes.md
 
-          gh release create "${{ steps.version.outputs.tag }}" \
-            --title "Release ${{ steps.version.outputs.tag }}" \
+          gh release create "${TAG}" \
+            --title "Release ${TAG}" \
             --notes-file release-notes.md
