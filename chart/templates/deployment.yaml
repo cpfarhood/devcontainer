@@ -80,14 +80,6 @@ spec:
               value: {{ .Values.fileManager.deniedPaths | quote }}
             {{- end }}
             {{- end }}
-            - name: HAPPY_HOME_DIR
-              value: {{ .Values.happy.homeDir | quote }}
-            - name: HAPPY_EXPERIMENTAL
-              value: {{ .Values.happy.experimental | quote }}
-            - name: HAPPY_SERVER_URL
-              value: {{ .Values.happy.serverUrl | quote }}
-            - name: HAPPY_WEBAPP_URL
-              value: {{ .Values.happy.webappUrl | quote }}
             {{- if .Values.githubRepo }}
             - name: GITHUB_REPO
               value: {{ .Values.githubRepo | quote }}

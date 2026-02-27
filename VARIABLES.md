@@ -52,30 +52,6 @@ Complete reference for all configurable values in the Antigravity Dev Container 
 - **Options:** `Always`, `IfNotPresent`, `Never`
 - **Description:** Image pull policy
 
-## Happy Coder Configuration
-
-### happyServerUrl
-- **Type:** String
-- **Default:** `https://happy.farh.net`
-- **Description:** Happy Coder server endpoint
-- **When to Change:** Self-hosted Happy instance
-
-### happyWebappUrl
-- **Type:** String
-- **Default:** `https://happy-coder.farh.net`
-- **Description:** Happy Coder webapp URL
-- **When to Change:** Self-hosted Happy instance
-
-### happyHomeDir
-- **Type:** String
-- **Default:** `/config/userdata/.happy`
-- **Description:** Happy runtime state directory (persists on PVC)
-
-### happyExperimental
-- **Type:** String
-- **Default:** `"true"`
-- **Description:** Enable experimental Happy features
-
 ## Display Configuration
 
 ### display.width
@@ -339,8 +315,6 @@ storage:
 
 clusterAccess: readonly
 
-happyServerUrl: https://happy.internal.company.com
-happyWebappUrl: https://happy-app.internal.company.com
 ```
 
 ### Smart Home Development Configuration
@@ -431,10 +405,6 @@ These environment variables are set in the container based on chart values:
 | `VNC_PASSWORD` | Secret: `vnc-password` | VNC access password |
 | `ANTHROPIC_API_KEY` | Secret: `anthropic-api-key` | Claude API key |
 | `SSH_AUTHORIZED_KEYS` | Secret: `ssh-authorized-keys` | SSH public keys |
-| `HAPPY_SERVER_URL` | `happyServerUrl` | Happy server endpoint |
-| `HAPPY_WEBAPP_URL` | `happyWebappUrl` | Happy webapp URL |
-| `HAPPY_HOME_DIR` | `happyHomeDir` | Happy data directory |
-| `HAPPY_EXPERIMENTAL` | `happyExperimental` | Experimental features |
 | `DISPLAY_WIDTH` | `display.width` | VNC width |
 | `DISPLAY_HEIGHT` | `display.height` | VNC height |
 | `SECURE_CONNECTION` | `secureConnection` | TLS termination |

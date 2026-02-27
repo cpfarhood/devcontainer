@@ -225,18 +225,6 @@ spec:
 
 ## Advanced Configurations
 
-### Custom Happy Coder Endpoints
-
-For self-hosted Happy instances:
-
-```bash
-helm install mydev ./chart \
-  --set name=mydev \
-  --set githubRepo=https://github.com/youruser/yourrepo \
-  --set happyServerUrl=https://your-happy-server.com \
-  --set happyWebappUrl=https://your-happy-webapp.com
-```
-
 ### Custom Display Resolution
 
 ```bash

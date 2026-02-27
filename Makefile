@@ -26,7 +26,6 @@ run:
 		-e GITHUB_REPO="${GITHUB_REPO}" \
 		-e GITHUB_TOKEN="${GITHUB_TOKEN}" \
 		-e VNC_PASSWORD="${VNC_PASSWORD}" \
-		-e HAPPY_EXPERIMENTAL="true" \
 		-v $(PWD)/home:/home \
 		-v $(PWD)/workspace:/workspace \
 		--name devcontainer \

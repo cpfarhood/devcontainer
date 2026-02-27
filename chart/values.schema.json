@@ -229,29 +229,6 @@
       "enum": ["none", "readonlyns", "readwritens", "readonly", "readwrite"],
       "description": "Kubernetes cluster access level"
     },
-    "happy": {
-      "type": "object",
-      "properties": {
-        "serverUrl": {
-          "type": "string",
-          "description": "Happy Coder server URL"
-        },
-        "webappUrl": {
-          "type": "string",
-          "description": "Happy Coder webapp URL"
-        },
-        "homeDir": {
-          "type": "string",
-          "description": "Happy Coder home directory"
-        },
-        "experimental": {
-          "type": "string",
-          "enum": ["true", "false"],
-          "description": "Enable experimental Happy features"
-        }
-      },
-      "required": ["homeDir", "experimental"]
-    },
     "mcp": {
       "type": "object",
       "properties": {

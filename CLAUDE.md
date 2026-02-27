@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The Dev Container is a Docker-based cloud development environment that provides:
 - Web-based GUI IDE (VSCode/Antigravity) via VNC on port 5800
-- Claude Code, Happy Coder, OpenCode, and Crush AI coding agents (terminal-based)
+- Claude Code, OpenCode, and Crush AI coding agents (terminal-based)
 - Built-in web file manager for uploading/downloading files (optional, via `fileManager.enabled`)
 - Automatic GitHub repository cloning on startup
 - Kubernetes-native deployment with persistent home storage
@@ -69,7 +69,7 @@ Container start
 
 | File | Purpose |
 |------|---------|
-| `Dockerfile` | Image definition — installs Chrome, Node.js, VSCode, Helm, gh CLI, kubeseal, Claude Code, Happy Coder, OpenCode, Crush; creates non-root user (UID 1000) |
+| `Dockerfile` | Image definition — installs Chrome, VSCode, Helm, gh CLI, kubeseal, Claude Code, OpenCode, Crush; creates non-root user (UID 1000) |
 | `scripts/init-repo.sh` | Configures git credentials, clones GitHub repo |
 | `scripts/startapp.sh` | Calls init-repo.sh then opens VSCode in the workspace |
 | `chart/` | Helm chart for Kubernetes deployment |
@@ -188,8 +188,6 @@ helm install my-devcontainer ./chart -f custom-values.yaml
 - `VNC_PASSWORD` — VNC web interface password
 - `DISPLAY_WIDTH` / `DISPLAY_HEIGHT` — VNC resolution
 - `USER_ID` / `GROUP_ID` — Override UID/GID (default 1000)
-- `HAPPY_SERVER_URL` / `HAPPY_WEBAPP_URL` — Custom Happy Coder endpoints
-- `HAPPY_HOME_DIR` / `HAPPY_EXPERIMENTAL`
 - `WEB_FILE_MANAGER` — Set to `1` to enable the built-in web file manager (controlled via `fileManager.enabled` in Helm values)
 - `WEB_FILE_MANAGER_ALLOWED_PATHS` — Paths accessible by the file manager (default: `/workspace,/config`)
 - `WEB_FILE_MANAGER_DENIED_PATHS` — Paths to deny access to (takes precedence over allowed)

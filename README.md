@@ -5,7 +5,7 @@
 A containerized cloud development environment with web-based GUI access, featuring:
 - **VSCode or Google Antigravity** via browser-based VNC (port 5800)
 - **SSH access** option (OpenSSH on port 22, additive with any IDE)
-- **Claude Code**, **Happy Coder**, **OpenCode**, and **Crush** AI coding agents (terminal-based)
+- **Claude Code**, **OpenCode**, and **Crush** AI coding agents (terminal-based)
 - **Built-in web file manager** for uploading/downloading files via the VNC web interface
 - **Helm CLI** included for Kubernetes chart development and deployment
 - **Automatic GitHub repo cloning** on startup
@@ -114,7 +114,7 @@ The Helm chart uses a logical organization with these main sections:
 - **Basic Configuration**: name, image, githubRepo
 - **Access & Interface**: IDE, SSH, display, user settings
 - **Infrastructure**: storage, resources, cluster access
-- **Integrations**: Happy Coder, MCP sidecars
+- **Integrations**: MCP sidecars
 - **Smart Defaults**: auto-detection and profiles
 
 📖 **Documentation**:
@@ -188,15 +188,6 @@ helm install mydev ./chart \
   --set githubRepo=https://github.com/youruser/yourrepo \
   --set fileManager.enabled=true
 ```
-
-### Happy Coder
-
-| Value | Default | Description |
-|-------|---------|-------------|
-| `happy.serverUrl` | `https://happy.farh.net` | Happy Coder server endpoint |
-| `happy.webappUrl` | `https://happy-coder.farh.net` | Happy Coder webapp URL |
-| `happy.homeDir` | `/config/userdata/.happy` | Happy runtime state directory (persists on the home PVC) |
-| `happy.experimental` | `true` | Enable experimental Happy features |
 
 ### Kubernetes cluster access
 
@@ -377,29 +368,9 @@ Container start
 | `/config` | ReadWriteMany PVC (`userhome-{name}`) | Survives pod restarts — stores Claude credentials, dotfiles, git config |
 | `/workspace` | `emptyDir` | Ephemeral — repo is re-cloned on each pod start |
 
-Happy Coder's runtime state (`HAPPY_HOME_DIR`) is kept in `/config/userdata/.happy` on the persistent home PVC, so auth credentials and settings survive pod restarts when manually started.
-
 ---
 
 ## Troubleshooting
-
-### Happy Coder (manual startup)
-
-Happy daemon is not started automatically. Launch it manually when needed:
-
-```bash
-# Start Happy Coder daemon manually
-happy daemon start
-
-# Check daemon status
-happy daemon status
-
-# View daemon logs
-ls ~/.happy/logs/
-
-# Stop daemon if needed
-happy daemon stop
-```
 
 ### Claude not authenticated
 
@@ -466,4 +437,4 @@ The image is also built and pushed automatically by CI on every push to `main` a
 ## Credits
 
 - Base image: [jlesage/docker-baseimage-gui](https://github.com/jlesage/docker-baseimage-gui)
-- AI assistant: [Happy Coder](https://happy.engineering) + [Claude](https://claude.ai)
+- AI assistant: [Claude](https://claude.ai)

@@ -56,14 +56,6 @@ exec /usr/bin/google-chrome-stable \\\n\
   "$@"\n' > /usr/local/bin/google-chrome && \
     chmod +x /usr/local/bin/google-chrome
 
-# Install Node.js LTS (required by Happy Coder)
-RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
-    apt-get install -y nodejs && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install Happy Coder globally via npm (stable, rarely changes)
-RUN npm install -g happy-coder
-
 # Install Claude Code native binary (npm wrapper breaks remote control)
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
     cp /root/.local/bin/claude /usr/local/bin/claude && \

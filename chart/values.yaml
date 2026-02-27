@@ -83,13 +83,6 @@ clusterAccess: none
 # INTEGRATIONS
 # =============================================================================
 
-# Happy Coder AI assistant configuration
-happy:
-  serverUrl: ""
-  webappUrl: ""
-  homeDir: "/config/userdata/.happy"
-  experimental: "true"
-
 # MCP (Model Context Protocol) server sidecars
 mcp:
   sidecars:

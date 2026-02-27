@@ -19,7 +19,6 @@
 - [ ] Built Docker image locally
 - [ ] Tested container startup
 - [ ] Tested repository cloning
-- [ ] Tested Happy Coder integration
 - [ ] Tested VNC web interface
 
 ## Checklist

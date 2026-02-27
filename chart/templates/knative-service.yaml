@@ -59,19 +59,6 @@ spec:
           value: "1"
         - name: WEB_FILE_MANAGER_ALLOWED_PATHS
           value: "/workspace,/tmp"  # No persistent /config in dynamic mode
-        # Happy Coder (ephemeral in dynamic mode)
-        - name: HAPPY_HOME_DIR
-          value: "/tmp/.happy"
-        - name: HAPPY_EXPERIMENTAL
-          value: {{ .Values.happy.experimental | quote }}
-        {{- if .Values.happy.serverUrl }}
-        - name: HAPPY_SERVER_URL
-          value: {{ .Values.happy.serverUrl | quote }}
-        {{- end }}
-        {{- if .Values.happy.webappUrl }}
-        - name: HAPPY_WEBAPP_URL
-          value: {{ .Values.happy.webappUrl | quote }}
-        {{- end }}
         # Secret environment variables
         envFrom:
         - secretRef:

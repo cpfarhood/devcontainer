@@ -100,13 +100,6 @@ user:
 shm:
   sizeLimit: 2Gi
 
-# Happy Coder (ephemeral in dynamic mode)
-happy:
-  serverUrl: ""
-  webappUrl: ""
-  homeDir: "/tmp/.happy"  # Ephemeral location in dynamic mode
-  experimental: "true"
-
 # MCP sidecars are not supported in dynamic mode (Knative limitation)
 mcp:
   sidecars:
