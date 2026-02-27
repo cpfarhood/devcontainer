@@ -130,7 +130,7 @@ mcp:
       image:
         repository: ghcr.io/zekker6/mcp-helm
         tag: v1.3.1
-      port: 8088
+      port: 8012
       resources:
         requests:
           memory: "64Mi"

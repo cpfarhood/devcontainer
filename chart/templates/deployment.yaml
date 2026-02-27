@@ -184,7 +184,6 @@ spec:
           image: "{{ .Values.mcp.sidecars.helm.image.repository }}:{{ .Values.mcp.sidecars.helm.image.tag }}"
           args:
             - -mode=sse
-            - -port={{ .Values.mcp.sidecars.helm.port }}
           ports:
             - containerPort: {{ .Values.mcp.sidecars.helm.port }}
               name: helm-mcp
