@@ -100,7 +100,8 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          no-cache: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           platforms: linux/amd64
 
       - name: Publish Helm Chart to GitHub Pages
@@ -157,31 +158,35 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Build release notes
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
           if [ -z "$PREV_TAG" ]; then
             COMMITS=$(git log --pretty=format:"- %s (%h)" HEAD)
           else
             COMMITS=$(git log --pretty=format:"- %s (%h)" "${PREV_TAG}..HEAD")
           fi
 
-          cat > release-notes.md <<EOF
-          ## Release ${{ steps.version.outputs.version }}
+          cat > release-notes.md <<'NOTESEOF'
+          ## Release RELEASE_VERSION
 
           ### Changes
-          ${COMMITS}
+          RELEASE_COMMITS
 
           ### Docker Image
-          \`\`\`bash
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
-          \`\`\`
+          ```bash
+          docker pull RELEASE_IMAGE
+          ```
 
           ### Helm Chart
-          \`\`\`bash
+          ```bash
           helm repo add devcontainer https://cpfarhood.github.io/devcontainer
           helm repo update
-          helm install mydev devcontainer/devcontainer --version ${{ steps.version.outputs.version }} --set name=mydev
-          \`\`\`
-          EOF
+          helm install mydev devcontainer/devcontainer --version RELEASE_VERSION --set name=mydev
+          ```
+          NOTESEOF
+          sed -i 's/^          //' release-notes.md
+          sed -i "s|RELEASE_VERSION|${{ steps.version.outputs.version }}|g" release-notes.md
+          sed -i "s|RELEASE_IMAGE|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}|g" release-notes.md
+          sed -i "s|RELEASE_COMMITS|${COMMITS}|g" release-notes.md
 
           gh release create "${{ steps.version.outputs.tag }}" \
             --title "Release ${{ steps.version.outputs.tag }}" \
