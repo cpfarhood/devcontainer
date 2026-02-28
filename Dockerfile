@@ -80,6 +80,12 @@ RUN CRUSH_VERSION=$(curl -sL https://api.github.com/repos/charmbracelet/crush/re
     chmod +x /usr/local/bin/crush && \
     rm -rf /tmp/crush*
 
+# Install Helm CLI for Kubernetes chart management
+ARG HELM_VERSION=3.17.1
+RUN curl -fsSL "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" | \
+    tar -xz --strip-components=1 -C /usr/local/bin linux-amd64/helm && \
+    chmod +x /usr/local/bin/helm
+
 # Install GitHub CLI (gh) via official APT repo
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
     chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && \
