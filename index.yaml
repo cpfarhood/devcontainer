@@ -3,7 +3,25 @@ entries:
   devcontainer:
   - apiVersion: v2
     appVersion: latest
-    created: "2026-02-27T14:26:42.311628481Z"
+    created: "2026-02-28T14:25:39.392448525Z"
+    description: Dev Container with AI coding agents and MCP sidecars - supports persistent
+      and dynamic deployment modes
+    digest: 8db383b24252edd37998c56bbba76793d1b6eeb37365a6894a713eef6af81210
+    keywords:
+    - development
+    - devcontainer
+    - vscode
+    - ai
+    - knative
+    - serverless
+    name: devcontainer
+    type: application
+    urls:
+    - https://cpfarhood.github.io/devcontainer/devcontainer-2.2.1.tgz
+    version: 2.2.1
+  - apiVersion: v2
+    appVersion: latest
+    created: "2026-02-28T14:25:39.39159998Z"
     description: Dev Container with AI coding agents and MCP sidecars - supports persistent
       and dynamic deployment modes
     digest: a1ea207bc96a35cc545d12fa8aca00452792de54e3fae74993260cd69afee0fa
@@ -21,7 +39,7 @@ entries:
     version: 2.2.0
   - apiVersion: v2
     appVersion: latest
-    created: "2026-02-27T14:26:42.310802486Z"
+    created: "2026-02-28T14:25:39.390809605Z"
     description: Dev Container with AI coding agents and MCP sidecars - supports persistent
       and dynamic deployment modes
     digest: beac1182a39f158fb9aa1f3308b4b030bf378d612f2aa860f792fad62aa30321
@@ -39,7 +57,7 @@ entries:
     version: 2.1.1
   - apiVersion: v2
     appVersion: latest
-    created: "2026-02-27T14:26:42.309980719Z"
+    created: "2026-02-28T14:25:39.389941454Z"
     description: Dev Container with AI coding agents and MCP sidecars - supports persistent
       and dynamic deployment modes
     digest: efb6cbd932a7ac082853d305e970db72e0086543a6963baabef16ebd2e8498f8
@@ -57,7 +75,7 @@ entries:
     version: 2.1.0
   - apiVersion: v2
     appVersion: latest
-    created: "2026-02-27T14:26:42.309072021Z"
+    created: "2026-02-28T14:25:39.38823089Z"
     description: Dev Container with AI coding agents and MCP sidecars - supports persistent
       and dynamic deployment modes
     digest: 46f25124d9045802d0e50d34209d15a7fa15e1ef1c9d3f0e93ac4bb39b7c9b17
@@ -75,7 +93,7 @@ entries:
     version: 2.0.5
   - apiVersion: v2
     appVersion: latest
-    created: "2026-02-27T14:26:42.308199169Z"
+    created: "2026-02-28T14:25:39.387435795Z"
     description: Dev Container with AI coding agents and MCP sidecars - supports persistent
       and dynamic deployment modes
     digest: db82381ffe831b07ce7777e8e6e05455a8eaeccfcd0afcd87825433a96cb2d65
@@ -93,7 +111,7 @@ entries:
     version: 2.0.4
   - apiVersion: v2
     appVersion: latest
-    created: "2026-02-27T14:26:42.307372453Z"
+    created: "2026-02-28T14:25:39.386582262Z"
     description: Dev Container with AI coding agents and MCP sidecars - supports persistent
       and dynamic deployment modes
     digest: 872919ea64531b35dfa7f956d8a6e4130a1c7f0f80c50141b6f2d1cddd49682e
@@ -111,7 +129,7 @@ entries:
     version: 2.0.3
   - apiVersion: v2
     appVersion: latest
-    created: "2026-02-27T14:26:42.30650419Z"
+    created: "2026-02-28T14:25:39.385738867Z"
     description: Dev Container with AI coding agents and MCP sidecars - supports persistent
       and dynamic deployment modes
     digest: 7cbb5379f8b41bc938a29b44c563757358c25fd843c75fb6d2f1a2b9365c0cf1
@@ -129,7 +147,7 @@ entries:
     version: 2.0.1-dev
   - apiVersion: v2
     appVersion: latest
-    created: "2026-02-27T14:26:42.305624445Z"
+    created: "2026-02-28T14:25:39.38485706Z"
     description: Dev Container with AI coding agents and MCP sidecars - supports persistent
       and dynamic deployment modes
     digest: 5736c92626e2c3edb8e81ddba5be581360dbf3901ccc607db8bad238ea831cd0
@@ -145,4 +163,4 @@ entries:
     urls:
     - https://cpfarhood.github.io/devcontainer/devcontainer-2.0.0-dev.tgz
     version: 2.0.0-dev
-generated: "2026-02-27T14:26:42.303788545Z"
+generated: "2026-02-28T14:25:39.383864337Z"
