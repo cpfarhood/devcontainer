@@ -137,7 +137,7 @@ mcp:
       enabled: false  # Requires HOMEASSISTANT_URL and HOMEASSISTANT_TOKEN
       image:
         repository: ghcr.io/homeassistant-ai/ha-mcp
-        tag: v6.7.1
+        tag: "6.7.1"
       port: 8087
       resources:
         requests:
