@@ -119,7 +119,7 @@ mcp:
 
     # Helm chart browsing and management
     helm:
-      enabled: true
+      enabled: false
       image:
         repository: ghcr.io/zekker6/mcp-helm
         tag: v1.3.1
