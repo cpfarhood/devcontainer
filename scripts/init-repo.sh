@@ -104,6 +104,12 @@ chown -R "$RUN_UID:$RUN_GID" "$WORKSPACE_DIR"
 mkdir -p "$HOME"
 chown "$RUN_UID:$RUN_GID" "$HOME"
 
+# Seed Claude Code settings if missing (disable auto-updater in Docker)
+if [ ! -f "$HOME/.claude/settings.json" ]; then
+    mkdir -p "$HOME/.claude"
+    echo '{"env":{"DISABLE_AUTOUPDATER":"1"}}' > "$HOME/.claude/settings.json"
+    chown -R "$RUN_UID:$RUN_GID" "$HOME/.claude"
+fi
 
 # Export workspace directory for startapp.sh
 echo "$WORKSPACE_DIR" > /tmp/workspace-dir

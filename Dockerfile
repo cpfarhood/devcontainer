@@ -62,6 +62,10 @@ RUN curl -fsSL https://claude.ai/install.sh | bash && \
     rm -rf /root/.local/bin/claude && \
     claude --version
 
+# Disable Claude Code auto-updater (doesn't work inside Docker)
+RUN mkdir -p /etc/skel/.claude && \
+    echo '{"env":{"DISABLE_AUTOUPDATER":"1"}}' > /etc/skel/.claude/settings.json
+
 # Install OpenCode AI coding agent
 RUN OPENCODE_VERSION=$(curl -sL https://api.github.com/repos/opencode-ai/opencode/releases/latest | jq -r '.tag_name') && \
     curl -fsSL "https://github.com/opencode-ai/opencode/releases/download/${OPENCODE_VERSION}/opencode-linux-x86_64.tar.gz" | \
