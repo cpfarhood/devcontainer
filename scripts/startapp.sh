@@ -4,13 +4,7 @@ set -e
 
 echo "=== Starting Dev Container ==="
 
-# Check if we're in serverless mode
-if [[ "$SERVERLESS_MODE" == "true" ]]; then
-    echo "Serverless mode detected, using serverless startup script..."
-    exec /usr/local/bin/serverless-startapp
-fi
-
-# Traditional mode - initialize repository
+# Initialize repository
 /usr/local/bin/init-repo
 
 # Get workspace directory

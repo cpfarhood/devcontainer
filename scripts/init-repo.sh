@@ -62,43 +62,85 @@ else
     fi
 fi
 
-# Check if GITHUB_REPO is set
-if [ -z "$GITHUB_REPO" ]; then
-    echo "GITHUB_REPO not set, skipping repository clone"
+# Build list of repositories to clone
+REPOS=()
+if [ -n "$GITHUB_REPOS" ]; then
+    # GITHUB_REPOS is a comma-separated list (takes precedence over GITHUB_REPO)
+    IFS=',' read -ra RAW_REPOS <<< "$GITHUB_REPOS"
+    for repo in "${RAW_REPOS[@]}"; do
+        repo="$(echo "$repo" | xargs)"  # trim whitespace
+        [ -n "$repo" ] && REPOS+=("$repo")
+    done
+elif [ -n "$GITHUB_REPO" ]; then
+    REPOS+=("$GITHUB_REPO")
+fi
+
+if [ ${#REPOS[@]} -eq 0 ]; then
+    echo "No repositories configured, skipping clone"
     WORKSPACE_DIR="/workspace/default"
     mkdir -p "$WORKSPACE_DIR"
 else
-    # Parse repo name from URL
-    REPO_NAME=$(basename "$GITHUB_REPO" .git)
-    WORKSPACE_DIR="/workspace/$REPO_NAME"
+    CLONED_DIRS=()
+    for REPO_URL in "${REPOS[@]}"; do
+        REPO_NAME=$(basename "$REPO_URL" .git)
+        REPO_DIR="/workspace/$REPO_NAME"
 
-    echo "Repository: $GITHUB_REPO"
-    echo "Target directory: $WORKSPACE_DIR"
+        echo "Repository: $REPO_URL"
+        echo "Target directory: $REPO_DIR"
 
-    # Check if repo already exists
-    if [ -d "$WORKSPACE_DIR/.git" ]; then
-        echo "Repository already exists, pulling latest changes..."
-        cd "$WORKSPACE_DIR"
-        git pull || echo "Pull failed, continuing anyway..."
-    else
-        echo "Cloning repository..."
-        mkdir -p "$(dirname "$WORKSPACE_DIR")"
-
-        # Clone with token if provided
-        if [ -n "$GITHUB_TOKEN" ]; then
-            # Replace https://github.com/ with https://oauth2:token@github.com/
-            CLONE_URL=$(echo "$GITHUB_REPO" | sed "s|https://github.com/|https://oauth2:${GITHUB_TOKEN}@github.com/|")
-            git clone "$CLONE_URL" "$WORKSPACE_DIR"
+        if [ -d "$REPO_DIR/.git" ]; then
+            echo "Repository already exists, pulling latest changes..."
+            cd "$REPO_DIR"
+            git pull || echo "Pull failed, continuing anyway..."
         else
-            git clone "$GITHUB_REPO" "$WORKSPACE_DIR"
+            echo "Cloning repository..."
+            mkdir -p "$(dirname "$REPO_DIR")"
+
+            if [ -n "$GITHUB_TOKEN" ]; then
+                CLONE_URL=$(echo "$REPO_URL" | sed "s|https://github.com/|https://oauth2:${GITHUB_TOKEN}@github.com/|")
+                git clone "$CLONE_URL" "$REPO_DIR"
+            else
+                git clone "$REPO_URL" "$REPO_DIR"
+            fi
         fi
+
+        CLONED_DIRS+=("$REPO_DIR")
+    done
+
+    if [ ${#CLONED_DIRS[@]} -eq 1 ]; then
+        # Single repo — open directory directly (same as legacy behavior)
+        WORKSPACE_DIR="${CLONED_DIRS[0]}"
+    else
+        # Multiple repos — generate a multi-root workspace file
+        WS_FILE="/workspace/workspace.code-workspace"
+        printf '{\n  "folders": [\n' > "$WS_FILE"
+        for i in "${!CLONED_DIRS[@]}"; do
+            printf '    {"path": "%s"}' "${CLONED_DIRS[$i]}" >> "$WS_FILE"
+            if [ "$i" -lt $(( ${#CLONED_DIRS[@]} - 1 )) ]; then
+                printf ',\n' >> "$WS_FILE"
+            else
+                printf '\n' >> "$WS_FILE"
+            fi
+        done
+        printf '  ],\n  "settings": {}\n}\n' >> "$WS_FILE"
+        WORKSPACE_DIR="$WS_FILE"
+        echo "Generated multi-root workspace: $WS_FILE"
     fi
 fi
 
 # Set ownership using numeric IDs (username may not exist yet in baseimage-gui)
 RUN_UID="${USER_ID:-1000}"
 RUN_GID="${GROUP_ID:-1000}"
-chown -R "$RUN_UID:$RUN_GID" "$WORKSPACE_DIR"
+for dir in "${CLONED_DIRS[@]}"; do
+    chown -R "$RUN_UID:$RUN_GID" "$dir"
+done
+if [ -n "$WS_FILE" ] && [ -f "$WS_FILE" ]; then
+    chown "$RUN_UID:$RUN_GID" "$WS_FILE"
+fi
+# Ensure default workspace dir ownership if no repos were cloned
+if [ ${#REPOS[@]} -eq 0 ]; then
+    chown -R "$RUN_UID:$RUN_GID" "$WORKSPACE_DIR"
+fi
 
 # Ensure home directory exists on the PVC (may be absent on a fresh volume)
 mkdir -p "$HOME"

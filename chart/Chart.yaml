@@ -1,6 +1,6 @@
 apiVersion: v2
 name: devcontainer
-description: Dev Container with AI coding agents and MCP sidecars - supports persistent and dynamic deployment modes
+description: Dev Container with AI coding agents and MCP sidecars
 type: application
 version: 2.3.0
 appVersion: "latest"
@@ -9,5 +9,3 @@ keywords:
   - devcontainer
   - vscode
   - ai
-  - knative
-  - serverless

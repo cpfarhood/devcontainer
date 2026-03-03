@@ -101,7 +101,6 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          cache-to: type=gha,mode=max
           platforms: linux/amd64
 
       - name: Publish Helm Chart to GitHub Pages

@@ -1,4 +1,3 @@
-{{- if eq .Values.deploymentMode "persistent" }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -21,4 +20,3 @@ spec:
     {{- end }}
   selector:
     {{- include "devcontainer.labels" . | nindent 4 }}
-{{- end }}

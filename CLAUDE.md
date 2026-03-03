@@ -61,7 +61,8 @@ Container start
   → scripts/startapp.sh
     → scripts/init-repo.sh
       → Configure git user & credentials
-      → Clone GITHUB_REPO (if set)
+      → Clone GITHUB_REPOS or GITHUB_REPO (if set)
+      → Generate workspace.code-workspace for multi-repo setups
     → Launch VSCode as user `user` in /workspace
 ```
 
@@ -70,7 +71,7 @@ Container start
 | File | Purpose |
 |------|---------|
 | `Dockerfile` | Image definition — installs Chrome, VSCode, Helm, gh CLI, kubeseal, Claude Code, OpenCode, Crush; creates non-root user (UID 1000) |
-| `scripts/init-repo.sh` | Configures git credentials, clones GitHub repo |
+| `scripts/init-repo.sh` | Configures git credentials, clones GitHub repo(s), generates multi-root workspace file |
 | `scripts/startapp.sh` | Calls init-repo.sh then opens VSCode in the workspace |
 | `chart/` | Helm chart for Kubernetes deployment |
 | `chart/templates/deployment.yaml` | Deployment spec — main container + MCP sidecar containers |
@@ -177,8 +178,9 @@ helm install my-devcontainer ./chart -f custom-values.yaml
 
 ### Environment Variables
 
-**Required:**
-- `GITHUB_REPO` — URL of repository to clone into `/workspace`
+**Required (at least one):**
+- `GITHUB_REPO` — URL of a single repository to clone into `/workspace`
+- `GITHUB_REPOS` — Comma-separated list of repository URLs to clone (takes precedence over `GITHUB_REPO`). When multiple repos are cloned, a `workspace.code-workspace` file is generated for multi-root IDE support.
 
 **Optional:**
 - `GITHUB_TOKEN` — PAT for private repo access (automatically configures git credentials)

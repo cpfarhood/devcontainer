@@ -8,6 +8,11 @@ name: mydev
 # GitHub repository to clone (required)
 githubRepo: https://github.com/youruser/yourrepo
 
+# Multiple repositories (optional, takes precedence over githubRepo)
+# githubRepos:
+#   - https://github.com/youruser/repo1
+#   - https://github.com/youruser/repo2
+
 # IDE choice (optional - defaults to vscode)
 # Options: vscode | antigravity | none
 ide:
