@@ -56,6 +56,13 @@ exec /usr/bin/google-chrome-stable \\\n\
   "$@"\n' > /usr/local/bin/google-chrome && \
     chmod +x /usr/local/bin/google-chrome
 
+# --- Cache boundary ---
+# Everything above here is deterministic (apt packages, fixed base image) and
+# safe to serve from the Docker layer cache.  Everything below fetches "latest"
+# releases via curl, so a changing CACHE_BUST arg forces a rebuild from this
+# point onward while still reusing the expensive base-image / apt layers.
+ARG CACHE_BUST
+
 # Install Claude Code native binary (npm wrapper breaks remote control)
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
     cp /root/.local/bin/claude /usr/local/bin/claude && \
