@@ -59,6 +59,13 @@ exec /usr/bin/google-chrome-stable \\\n\
   "$@"\n' > /usr/local/bin/google-chrome && \
     chmod +x /usr/local/bin/google-chrome
 
+# Install Node.js LTS via NodeSource
+ARG NODE_MAJOR=22
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_MAJOR}.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/* && \
+    node --version && npm --version
+
 # Install Claude Code native binary (npm wrapper breaks remote control)
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
     cp /root/.local/bin/claude /usr/local/bin/claude && \
