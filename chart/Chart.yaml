@@ -2,7 +2,7 @@ apiVersion: v2
 name: devcontainer
 description: Dev Container with AI coding agents and MCP sidecars
 type: application
-version: 2.3.0
+version: 2.4.0
 appVersion: "latest"
 keywords:
   - development
