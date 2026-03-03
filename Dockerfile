@@ -1,5 +1,8 @@
 FROM jlesage/baseimage-gui:ubuntu-22.04-v4
 
+# Bust cache for all layers below (base image pull is still cached)
+ARG CACHE_BUST
+
 # Set environment variables
 ENV APP_NAME="Dev Container" \
     KEEP_APP_RUNNING=1 \
