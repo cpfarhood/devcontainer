@@ -4,6 +4,13 @@ set -e
 
 echo "=== Repository Initialization ==="
 
+# Ensure home directory exists on the PVC before any git operations
+# (git config --global writes to $HOME/.gitconfig, which fails on a fresh volume)
+RUN_UID="${USER_ID:-1000}"
+RUN_GID="${GROUP_ID:-1000}"
+mkdir -p "$HOME"
+chown "$RUN_UID:$RUN_GID" "$HOME"
+
 # Set up basic git configuration
 echo "Configuring git user settings..."
 # Use environment variables if provided, otherwise use defaults
@@ -141,10 +148,6 @@ fi
 if [ ${#REPOS[@]} -eq 0 ]; then
     chown -R "$RUN_UID:$RUN_GID" "$WORKSPACE_DIR"
 fi
-
-# Ensure home directory exists on the PVC (may be absent on a fresh volume)
-mkdir -p "$HOME"
-chown "$RUN_UID:$RUN_GID" "$HOME"
 
 # Seed Claude Code settings if missing (disable auto-updater in Docker)
 if [ ! -f "$HOME/.claude/settings.json" ]; then
