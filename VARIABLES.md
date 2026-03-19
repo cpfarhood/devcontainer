@@ -37,7 +37,7 @@ Complete reference for all configurable values in the Antigravity Dev Container 
 
 ### image.repository
 - **Type:** String
-- **Default:** `ghcr.io/cpfarhood/devcontainer`
+- **Default:** `ghcr.io/farhoodliquor/devcontainer`
 - **Description:** Container image repository
 
 ### image.tag

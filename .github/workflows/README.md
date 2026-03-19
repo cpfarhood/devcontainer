@@ -4,7 +4,7 @@
 
 ### 1️⃣ For Releases → **Unified Release**
 Use this for all version releases:
-1. Go to [Actions → Unified Release](https://github.com/cpfarhood/devcontainer/actions/workflows/release-unified.yaml)
+1. Go to [Actions → Unified Release](https://github.com/farhoodliquor/devcontainer/actions/workflows/release-unified.yaml)
 2. Click "Run workflow"
 3. Either:
    - Enter specific version (e.g., `0.2.1`), OR
@@ -15,12 +15,12 @@ Use this for all version releases:
 - ✅ Updates chart version
 - ✅ Creates git tag
 - ✅ Builds Docker image with all proper tags
-- ✅ Publishes Helm chart to GitHub Pages (`https://cpfarhood.github.io/devcontainer`)
+- ✅ Publishes Helm chart to GitHub Pages (`https://farhoodliquor.github.io/devcontainer`)
 - ✅ Creates GitHub Release with changelog
 
 ### 2️⃣ For Quick Fixes → **Quick Fix Build**
 Use this for emergency fixes without version changes:
-1. Go to [Actions → Quick Fix Build](https://github.com/cpfarhood/devcontainer/actions/workflows/quick-fix.yaml)
+1. Go to [Actions → Quick Fix Build](https://github.com/farhoodliquor/devcontainer/actions/workflows/quick-fix.yaml)
 2. Click "Run workflow"
 3. Enter tag (default: `latest`)
 4. Click "Run workflow"

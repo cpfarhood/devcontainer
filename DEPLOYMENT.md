@@ -15,7 +15,7 @@ This guide provides step-by-step instructions for deploying the Antigravity Dev 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/cpfarhood/devcontainer.git
+git clone https://github.com/farhoodliquor/devcontainer.git
 cd devcontainer
 ```
 
@@ -433,5 +433,5 @@ kubectl run backup --image=busybox --restart=Never --rm -i --tty \
 ## Support
 
 For issues or questions:
-- GitHub Issues: https://github.com/cpfarhood/devcontainer/issues
-- Documentation: https://github.com/cpfarhood/devcontainer
+- GitHub Issues: https://github.com/farhoodliquor/devcontainer/issues
+- Documentation: https://github.com/farhoodliquor/devcontainer

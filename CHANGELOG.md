@@ -95,4 +95,4 @@ Use this template for future releases:
 - Vulnerability fixes
 ```
 
-[Unreleased]: https://github.com/cpfarhood/devcontainer/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/farhoodliquor/devcontainer/compare/v1.0.0...HEAD

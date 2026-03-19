@@ -7,7 +7,7 @@ name: ""
 
 # Container image configuration
 image:
-  repository: ghcr.io/cpfarhood/devcontainer
+  repository: ghcr.io/farhoodliquor/devcontainer
   tag: latest
   pullPolicy: Always
 

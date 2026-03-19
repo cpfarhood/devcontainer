@@ -1,7 +1,7 @@
 # Antigravity Dev Container - Session Notes
 
 ## Key Architecture Facts
-- Image: `ghcr.io/cpfarhood/devcontainer:latest` (repo name is `devcontainer`, not `antigravity`)
+- Image: `ghcr.io/farhoodliquor/devcontainer:latest` (repo name is `devcontainer`, not `antigravity`)
 - Deployed via Helm chart (`chart/`), not kustomize anymore
 - Service must NOT be headless (`clusterIP: None`) — Cilium gateway can't route to headless services
 - `SECURE_CONNECTION=0` — TLS is terminated at the gateway, not the app

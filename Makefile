@@ -1,7 +1,7 @@
 .PHONY: build push run stop clean help
 
 # Variables
-REGISTRY ?= ghcr.io/cpfarhood
+REGISTRY ?= ghcr.io/farhoodliquor
 IMAGE_NAME ?= devcontainer
 IMAGE_TAG ?= latest
 FULL_IMAGE = $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
@@ -99,7 +99,7 @@ help:
 	@echo "  helm-port-forward  - Port forward to localhost"
 	@echo ""
 	@echo "Variables:"
-	@echo "  REGISTRY           - Docker registry (default: ghcr.io/cpfarhood)"
+	@echo "  REGISTRY           - Docker registry (default: ghcr.io/farhoodliquor)"
 	@echo "  IMAGE_NAME         - Image name (default: devcontainer)"
 	@echo "  IMAGE_TAG          - Image tag (default: latest)"
 	@echo "  RELEASE_NAME       - Helm release name (default: mydev)"

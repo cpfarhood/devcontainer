@@ -1,6 +1,6 @@
 # Dev Container
 
-![Build and Push](https://github.com/cpfarhood/devcontainer/actions/workflows/build-and-push.yaml/badge.svg)
+![Build and Push](https://github.com/farhoodliquor/devcontainer/actions/workflows/build-and-push.yaml/badge.svg)
 
 A containerized cloud development environment with web-based GUI access, featuring:
 - **VSCode or Google Antigravity** via browser-based VNC (port 5800)
@@ -18,7 +18,7 @@ A containerized cloud development environment with web-based GUI access, featuri
 
 ```bash
 # Add the Helm repository
-helm repo add devcontainer https://cpfarhood.github.io/devcontainer
+helm repo add devcontainer https://farhoodliquor.github.io/devcontainer
 helm repo update
 
 # Deploy with one command
@@ -131,7 +131,7 @@ The Helm chart uses a logical organization with these main sections:
 | `ide.type` | `vscode` | IDE to launch — `vscode`, `antigravity`, or `none` (see below) |
 | `ssh.enabled` | `false` | Also start an OpenSSH server on port 22 (additive, any IDE) |
 | `fileManager.enabled` | `false` | Enable the built-in web file manager for upload/download |
-| `image.repository` | `ghcr.io/cpfarhood/devcontainer` | Container image |
+| `image.repository` | `ghcr.io/farhoodliquor/devcontainer` | Container image |
 | `image.tag` | `latest` | Image tag |
 
 ### IDE choice
@@ -418,7 +418,7 @@ docker run -d \
   -e GITHUB_TOKEN="ghp_..." \
   -e VNC_PASSWORD="changeme" \
   -v $(pwd)/home:/home \
-  ghcr.io/cpfarhood/devcontainer:latest
+  ghcr.io/farhoodliquor/devcontainer:latest
 ```
 
 ---
@@ -426,8 +426,8 @@ docker run -d \
 ## Building
 
 ```bash
-docker build -t ghcr.io/cpfarhood/devcontainer:latest .
-docker push ghcr.io/cpfarhood/devcontainer:latest
+docker build -t ghcr.io/farhoodliquor/devcontainer:latest .
+docker push ghcr.io/farhoodliquor/devcontainer:latest
 ```
 
 The image is also built and pushed automatically by CI on every push to `main` and on version tags (`v*`).

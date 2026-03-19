@@ -21,7 +21,7 @@ The stack is primarily **Bash scripts + YAML** — there is no Node.js package, 
 ```bash
 make build                              # Build Docker image
 make build REGISTRY=ghcr.io/myuser IMAGE_TAG=v1.0  # Custom registry/tag
-docker build -t ghcr.io/cpfarhood/devcontainer:latest .  # Direct build
+docker build -t ghcr.io/farhoodliquor/devcontainer:latest .  # Direct build
 ```
 
 ### Running Locally
@@ -197,11 +197,11 @@ helm install my-devcontainer ./chart -f custom-values.yaml
 ### CI/CD
 
 - **`build-and-push.yaml`** — Builds and pushes to GHCR on every push to `main`, version tags (`v*`), and PRs. Tags: `latest` (main), semver, branch name, commit SHA.
-- **`release-unified.yaml`** — Manual release workflow: bumps chart version, builds Docker image, publishes Helm chart to GitHub Pages (`https://cpfarhood.github.io/devcontainer`), and creates GitHub Release.
+- **`release-unified.yaml`** — Manual release workflow: bumps chart version, builds Docker image, publishes Helm chart to GitHub Pages (`https://farhoodliquor.github.io/devcontainer`), and creates GitHub Release.
 - **`dependabot.yml`** — Weekly updates for GitHub Actions and Docker base image.
 
-Image registry: `ghcr.io/cpfarhood/devcontainer`
-Helm repo: `https://cpfarhood.github.io/devcontainer`
+Image registry: `ghcr.io/farhoodliquor/devcontainer`
+Helm repo: `https://farhoodliquor.github.io/devcontainer`
 
 ## Kubernetes Notes
 
