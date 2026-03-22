@@ -14,7 +14,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.6.0.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.6.0.tgz
     version: 2.6.0
   - apiVersion: v2
     appVersion: latest
@@ -29,7 +29,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.4.0.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.4.0.tgz
     version: 2.4.0
   - apiVersion: v2
     appVersion: latest
@@ -47,7 +47,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.3.0.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.3.0.tgz
     version: 2.3.0
   - apiVersion: v2
     appVersion: latest
@@ -65,7 +65,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.2.5.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.2.5.tgz
     version: 2.2.5
   - apiVersion: v2
     appVersion: latest
@@ -83,7 +83,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.2.4.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.2.4.tgz
     version: 2.2.4
   - apiVersion: v2
     appVersion: latest
@@ -101,7 +101,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.2.3.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.2.3.tgz
     version: 2.2.3
   - apiVersion: v2
     appVersion: latest
@@ -119,7 +119,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.2.2.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.2.2.tgz
     version: 2.2.2
   - apiVersion: v2
     appVersion: latest
@@ -137,7 +137,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.2.1.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.2.1.tgz
     version: 2.2.1
   - apiVersion: v2
     appVersion: latest
@@ -155,7 +155,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.2.0.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.2.0.tgz
     version: 2.2.0
   - apiVersion: v2
     appVersion: latest
@@ -173,7 +173,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.1.1.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.1.1.tgz
     version: 2.1.1
   - apiVersion: v2
     appVersion: latest
@@ -191,7 +191,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.1.0.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.1.0.tgz
     version: 2.1.0
   - apiVersion: v2
     appVersion: latest
@@ -209,7 +209,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.0.5.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.0.5.tgz
     version: 2.0.5
   - apiVersion: v2
     appVersion: latest
@@ -227,7 +227,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.0.4.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.0.4.tgz
     version: 2.0.4
   - apiVersion: v2
     appVersion: latest
@@ -245,7 +245,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.0.3.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.0.3.tgz
     version: 2.0.3
   - apiVersion: v2
     appVersion: latest
@@ -263,7 +263,7 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.0.1-dev.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.0.1-dev.tgz
     version: 2.0.1-dev
   - apiVersion: v2
     appVersion: latest
@@ -281,6 +281,6 @@ entries:
     name: devcontainer
     type: application
     urls:
-    - https://cpfarhood.github.io/devcontainer/devcontainer-2.0.0-dev.tgz
+    - https://farhoodliquor.github.io/devcontainer/devcontainer-2.0.0-dev.tgz
     version: 2.0.0-dev
 generated: "2026-03-11T12:15:44.619306973Z"
